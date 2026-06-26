@@ -315,6 +315,31 @@ $[0,1]$ → Beta, a positive amount → Gamma/Exponential, a real value → Gaus
 categories → Categorical. A model's **output layer mirrors this** — sigmoid (Bernoulli),
 softmax (Categorical), linear (Gaussian).
 
+### Where each shows up (in practice)
+
+- **Bernoulli** — the workhorse of **binary outcomes**: spam/not, click/no-click,
+  fraud/legit, churn/stay, a pixel on/off. It *is* the output of **logistic regression**
+  and a **sigmoid neuron**, and the per-trial atom of an A/B test.
+- **Binomial** — **aggregate counts** of binary trials: conversions out of $n$ visitors,
+  defective items per batch, votes in a sample. Behind **proportion confidence intervals**
+  and A/B-test significance.
+- **Poisson** — counts of **rare, independent events** per fixed window: hits per minute,
+  customer arrivals, photons on a sensor, typos per page, mutations per genome.
+  **Poisson regression** models count targets; queueing & reliability rely on it.
+- **Geometric** — the **wait (in trials) until the first success**: attempts until a user
+  converts, retransmissions until a packet gets through. It is **memoryless** — past
+  failures don't change what's left.
+- **Gaussian** — by far the most used: **measurement noise**, **regression residuals**,
+  features after **standardization**, **weight initialization**, the **CLT** limit of
+  averages, and **VAE** latents. The default "assume normal" when you know only a mean and
+  a spread.
+- **Beta** — a distribution **over a probability** in $[0,1]$: an unknown click-through or
+  conversion **rate**, the **prior** in Bayesian A/B testing, and the exploration engine
+  of **Thompson-sampling bandits**; also Naive-Bayes smoothing.
+- **Gamma** — **positive, skewed** amounts: time-to-failure, insurance **claim sizes**,
+  rainfall totals, the wait for $k$ Poisson events. It's the **conjugate prior** for a
+  Poisson rate and for a Gaussian's precision.
+
 ## 4. Expectation & variance
 
 The **expectation** $\mathbb E[X]=\sum_x x\,P(x)$ (or $\int x\,p(x)\,dx$) is the
