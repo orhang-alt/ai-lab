@@ -264,14 +264,56 @@ A **random variable** takes values with certain probabilities. **Discrete** ones
 (integrates to 1, and $p(x)$ is a *density*, not a probability). A distribution is the
 full description of those probabilities.
 
-## 3. Key distributions
+## 3. Key distributions — a catalog
 
-- **Bernoulli** — one coin flip, $P(1)=p$. **Binomial** — count of successes in $n$ flips.
-- **Categorical** — one of $K$ classes (the target of multiclass classification).
-- **Gaussian / Normal** $\mathcal N(\mu,\sigma^2)$, $p(x)=\frac{1}{\sigma\sqrt{2\pi}}e^{-(x-\mu)^2/2\sigma^2}$
-  — the bell curve. It's everywhere because of the **Central Limit Theorem**: sums/averages
-  of many independent effects tend to Gaussian. Squared-error loss assumes Gaussian noise.
-- **Uniform** — all values equally likely.
+A distribution is fixed by its **support** (possible values), a **PMF** (discrete) or
+**PDF** (continuous), and its **parameters**. Here are the ones you'll actually meet, with
+mean, variance, and where they appear in ML.
+
+### Discrete
+
+| distribution | PMF | mean | variance | shows up as |
+|---|---|---|---|---|
+| **Bernoulli($p$)** | $p^x(1-p)^{1-x}$ | $p$ | $p(1-p)$ | a single binary label / coin flip |
+| **Binomial($n,p$)** | $\binom{n}{k}p^k(1-p)^{n-k}$ | $np$ | $np(1-p)$ | # successes in $n$ trials |
+| **Categorical($\boldsymbol\pi$)** | $\pi_k$ | — | — | a multiclass label (the softmax target) |
+| **Multinomial($n,\boldsymbol\pi$)** | counts coef. | $n\pi_k$ | $n\pi_k(1-\pi_k)$ | word counts (bag-of-words) |
+| **Poisson($\lambda$)** | $\lambda^k e^{-\lambda}/k!$ | $\lambda$ | $\lambda$ | counts of rare events (mean = var) |
+| **Geometric($p$)** | $(1-p)^{k-1}p$ | $1/p$ | $(1-p)/p^2$ | trials until the first success |
+
+### Continuous
+
+| distribution | PDF | mean | variance | shows up as |
+|---|---|---|---|---|
+| **Uniform($a,b$)** | $\tfrac{1}{b-a}$ | $\tfrac{a+b}{2}$ | $\tfrac{(b-a)^2}{12}$ | priors, weight init, sampling |
+| **Gaussian($\mu,\sigma^2$)** | $\tfrac{1}{\sigma\sqrt{2\pi}}e^{-(x-\mu)^2/2\sigma^2}$ | $\mu$ | $\sigma^2$ | noise, init, the CLT — everywhere |
+| **Exponential($\lambda$)** | $\lambda e^{-\lambda x}$ | $1/\lambda$ | $1/\lambda^2$ | waiting times; memoryless |
+| **Gamma($\alpha,\beta$)** | $\propto x^{\alpha-1}e^{-\beta x}$ | $\alpha/\beta$ | $\alpha/\beta^2$ | positive & skewed; sum of exponentials |
+| **Beta($\alpha,\beta$)** | $\propto x^{\alpha-1}(1-x)^{\beta-1}$ | $\tfrac{\alpha}{\alpha+\beta}$ | — | a distribution *over* probabilities; Bernoulli's conjugate prior |
+| **Laplace($\mu,b$)** | $\tfrac{1}{2b}e^{-|x-\mu|/b}$ | $\mu$ | $2b^2$ | heavy tails; the L1 / lasso prior |
+
+### The Gaussian, special
+
+It dominates because of the **CLT** (§16): sums/averages of many independent effects tend
+to Gaussian. The **standard normal** $\mathcal N(0,1)$ is the $z$-standardized version
+(§9); the **multivariate** Gaussian uses a mean *vector* and a covariance *matrix*; and
+squared-error loss is the MLE under Gaussian noise (§12, M1).
+
+### How they relate (a small map)
+
+- Sum of **Bernoulli** trials → **Binomial**; Binomial with large $n$, small $p$ →
+  **Poisson**; Binomial with large $n$ → **Gaussian** (CLT).
+- **Categorical** generalizes Bernoulli to $K$ outcomes; **Multinomial** generalizes Binomial.
+- **Exponential** is a special **Gamma** ($\alpha=1$); a sum of exponentials is Gamma.
+- **Beta** is the conjugate prior for Bernoulli/Binomial; its multivariate cousin
+  **Dirichlet** is the conjugate prior for Categorical/Multinomial (§18).
+
+### Choosing one to model with
+
+Match the **support** to your data: binary → Bernoulli, counts → Poisson, a proportion in
+$[0,1]$ → Beta, a positive amount → Gamma/Exponential, a real value → Gaussian, one of $K$
+categories → Categorical. A model's **output layer mirrors this** — sigmoid (Bernoulli),
+softmax (Categorical), linear (Gaussian).
 
 ## 4. Expectation & variance
 
@@ -353,15 +395,15 @@ whole posterior $p(\theta\mid D)\propto p(D\mid\theta)\,p(\theta)$ (Bayes, §6);
 regularization (ridge)**, and a **Laplace prior** = **L1 (lasso)**. Priors *are*
 regularizers — the bridge between probability and M1/M6.
 
-## 14. More distributions (and the exponential family)
+## 14. The exponential family & GLMs
 
-- **Poisson($\lambda$)** — counts of rare events in a window (arrivals, defects); mean = variance = $\lambda$.
-- **Categorical / Multinomial** — one-of-$K$ outcomes (the softmax target).
-- **Beta($\alpha,\beta$)** — a distribution *over probabilities* in $[0,1]$; the natural prior for a Bernoulli rate.
-- **Exponential / Gamma** — waiting times.
-
-Bernoulli, Gaussian, Poisson, and Categorical all belong to the **exponential family**,
-the backbone of **generalized linear models** — and linear & logistic regression are GLMs.
+Bernoulli, Gaussian, Poisson, Categorical, Beta, and Gamma (the §3 catalog) all belong to
+the **exponential family** — distributions writable as
+$p(x\mid\theta)\propto e^{\,\eta(\theta)\cdot T(x)}$. That shared structure is the backbone
+of **generalized linear models (GLMs)**: choose the output distribution and its natural
+link, and a model falls out — Gaussian → **linear regression**, Bernoulli → **logistic
+regression**, Poisson → **Poisson regression**, Categorical → **softmax regression**. One
+framework, many models — and each is a single neuron with the matching activation/loss.
 
 ## 15. Law of total probability & total expectation
 
