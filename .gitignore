@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.venv-dl/
+*.egg-info/
+.pytest_cache/
+
+# Data & artifacts (keep these out of git; they're regenerable / large)
+datasets/**/*.gz
+datasets/**/*.csv
+datasets/**/*.npy
+datasets/**/*.bin
+*.pt
+*.ckpt
+runs/
+outputs/
+*.png
+
+# Papers: keep the reading list (papers/README.md) in git, ignore the PDFs.
+papers/*.pdf
+
+# GUI runtime (start.sh / stop.sh)
+.gui.pid
+.gui.log
+
+# Editor
+.DS_Store
+.vscode/
+.idea/

@@ -1,0 +1,19 @@
+# Tier 0-1 (from scratch): numpy is all you need.
+numpy>=1.26
+
+# Visualization helpers (core/viz.py). Optional but recommended.
+matplotlib>=3.8
+
+# Testing (gradient checks etc.)
+pytest>=8.0
+
+# ----------------------------------------------------------------------------
+# Later tiers — install when you reach them. PyTorch wheels can lag the newest
+# Python; if `pip install torch` fails on 3.14, create a separate 3.12 venv:
+#     python3.12 -m venv .venv-dl && source .venv-dl/bin/activate
+# ----------------------------------------------------------------------------
+# torch>=2.2
+# torchvision>=0.17
+# transformers>=4.40
+# datasets>=2.19
+# tokenizers>=0.19
