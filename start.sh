@@ -34,6 +34,10 @@ fi
 # shellcheck disable=SC1091
 source "$VENV/bin/activate"
 
+# Local runs get the 🐍 Sandbox (arbitrary-code scratchpad); public deploys don't set
+# this, so the Sandbox is hidden there.
+export AILAB_ENABLE_SANDBOX=1
+
 echo "Starting AI Lab GUI on port $PORT ..."
 nohup streamlit run gui/app.py \
   --server.headless true \

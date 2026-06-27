@@ -10,6 +10,7 @@ Launch:
     streamlit run gui/app.py
 """
 
+import os
 import pathlib
 import sys
 
@@ -55,6 +56,15 @@ MATH_PAGES = [
     SANDBOX,
 ]
 MODULES = {"ANN": ANN_PAGES, "ML": ML_PAGES, "Math": MATH_PAGES}
+
+# The Sandbox runs arbitrary Python in-process, so expose it ONLY when explicitly
+# enabled — start.sh sets AILAB_ENABLE_SANDBOX=1 locally; it's unset on a public
+# deploy (Streamlit Cloud), so the Sandbox is hidden there.
+SANDBOX_ENABLED = os.environ.get("AILAB_ENABLE_SANDBOX") == "1"
+if not SANDBOX_ENABLED:
+    for _pages in MODULES.values():
+        if SANDBOX in _pages:
+            _pages.remove(SANDBOX)
 
 # --- module selector (the "select at the beginning") ------------------------
 module = st.sidebar.segmented_control(

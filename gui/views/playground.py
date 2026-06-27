@@ -1,4 +1,5 @@
 import itertools
+import os
 import pathlib
 import sys
 
@@ -187,14 +188,15 @@ with tab_quiz:
 
 with tab_tasks:
     st.subheader("Tasks")
-    st.caption("Run a starter in the 🐍 Sandbox (numpy + core preloaded):")
-    cta = st.columns(2)
-    if cta[0].button("Try: single neuron →"):
-        st.session_state["sandbox_code"] = _TRY_NEURON
-        st.switch_page("views/sandbox.py")
-    if cta[1].button("Try: perceptron rule →"):
-        st.session_state["sandbox_code"] = _TRY_PERCEPTRON
-        st.switch_page("views/sandbox.py")
+    if os.environ.get("AILAB_ENABLE_SANDBOX") == "1":  # only when the Sandbox page exists
+        st.caption("Run a starter in the 🐍 Sandbox (numpy + core preloaded):")
+        cta = st.columns(2)
+        if cta[0].button("Try: single neuron →"):
+            st.session_state["sandbox_code"] = _TRY_NEURON
+            st.switch_page("views/sandbox.py")
+        if cta[1].button("Try: perceptron rule →"):
+            st.session_state["sandbox_code"] = _TRY_PERCEPTRON
+            st.switch_page("views/sandbox.py")
     st.markdown(LESSON.tasks)
 
 with tab_ref:
