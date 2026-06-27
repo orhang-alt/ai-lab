@@ -88,7 +88,8 @@ def _load_example():
 
 
 def _run_subprocess(code, timeout):
-    env = {**os.environ, "MPLBACKEND": "Agg", "PYTHONUTF8": "1"}
+    env = {**os.environ, "MPLBACKEND": "Agg", "PYTHONUTF8": "1",
+           "PYTHONPATH": str(LAB_ROOT) + os.pathsep + os.environ.get("PYTHONPATH", "")}
     try:
         p = subprocess.run([sys.executable, "-c", code], cwd=str(LAB_ROOT),
                            capture_output=True, text=True, timeout=timeout, env=env)

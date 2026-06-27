@@ -114,7 +114,11 @@ def run_pytest(timeout: int = 120):
 def _base_env():
     import os
 
-    return dict(os.environ)
+    # Put the lab root on PYTHONPATH so subprocess `python run.py` can `import core`
+    # even where the package isn't pip-installed editable (e.g. Streamlit Cloud).
+    env = dict(os.environ)
+    env["PYTHONPATH"] = str(LAB_ROOT) + os.pathsep + env.get("PYTHONPATH", "")
+    return env
 
 
 def status_of(exp: Experiment, timeout: int = 30) -> str:

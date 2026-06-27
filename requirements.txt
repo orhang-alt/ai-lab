@@ -1,10 +1,10 @@
-# Tier 0-1 (from scratch): numpy is all you need.
+# --- GUI / deploy: Streamlit Community Cloud installs exactly these ---
+streamlit>=1.36
 numpy>=1.26
-
-# Visualization helpers (core/viz.py). Optional but recommended.
 matplotlib>=3.8
+pandas>=2.0
 
-# Testing (gradient checks etc.)
+# Testing (local only)
 pytest>=8.0
 
 # ----------------------------------------------------------------------------

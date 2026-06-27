@@ -1,27 +1,32 @@
-"""e08 — MSE vs cross-entropy gradients (STUB: implement the TODOs).
+"""e08 — MSE vs cross-entropy gradients (Tier 1).
+
+Why classification uses cross-entropy, not MSE: at a confident-but-wrong sigmoid output,
+MSE's gradient carries a σ'(z) factor that nearly vanishes (slow learning), while
+binary cross-entropy's gradient is the clean (p − y) — large when wrong.
 
 Run:  python experiments/tier1_backprop/e08_loss_functions/run.py
 """
 
 from __future__ import annotations
 
-import numpy as np
-
 from core import activations as A
-from core import losses
 
 
 def main():
-    # A single sigmoid output that is confidently WRONG: target=1, output~0.001
-    z = -7.0
-    p = A.sigmoid(z)
-    print(f"pre-activation z={z}, sigmoid(z)={p:.5f}, target=1")
+    z = -7.0               # pre-activation; target y=1 → the neuron is confidently WRONG
+    p = float(A.sigmoid(z))
+    y = 1.0
+    print(f"pre-activation z = {z}, sigmoid(z) = {p:.5f}, target y = {y}\n")
 
-    # TODO: implement losses.mse / losses.bce, then:
-    # TODO: dL/dz for MSE+sigmoid  = (p - 1) * sigmoid_prime(z)
-    # TODO: dL/dz for BCE+sigmoid  = (p - 1)          # the clean form
-    # TODO: print both magnitudes and explain why BCE learns faster here.
-    raise NotImplementedError("e08: compare MSE vs BCE gradients at saturation")
+    dmse = (p - y) * float(A.sigmoid_prime(z))   # MSE + sigmoid: (p-y)·σ'(z)
+    dbce = (p - y)                               # BCE + sigmoid: (p-y)  — σ' cancels
+
+    print(f"MSE + sigmoid : dL/dz = (p-y)·σ'(z) = {dmse:.6f}")
+    print(f"BCE + sigmoid : dL/dz = (p-y)        = {dbce:.6f}")
+    print(f"\nBCE's gradient is ~{abs(dbce / dmse):.0f}× larger here. MSE's σ'(z) factor "
+          "nearly\nvanishes when the neuron is saturated, so it barely learns from a "
+          "confident\nmistake — which is exactly why classification pairs sigmoid/softmax "
+          "with cross-entropy.")
 
 
 if __name__ == "__main__":

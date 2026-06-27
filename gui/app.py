@@ -10,7 +10,14 @@ Launch:
     streamlit run gui/app.py
 """
 
+import pathlib
+import sys
+
 import streamlit as st
+
+# Make the lab root importable so `import core` works without `pip install -e .`
+# (e.g. on Streamlit Community Cloud, which only installs requirements.txt).
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 
 st.set_page_config(page_title="AI Lab", page_icon="🧠", layout="wide")
 

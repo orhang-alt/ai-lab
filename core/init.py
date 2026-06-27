@@ -1,15 +1,7 @@
-"""Weight initialization schemes.  ===  YOU BUILD THIS IN e10  ===
+"""Weight initialization schemes (Tier 2 e10).
 
-Why it matters: bad init makes deep nets either saturate (vanishing gradients)
-or explode. e10 will show this empirically.
-
-Implement (all return a NumPy array of the requested shape):
-    zeros(shape)
-    normal(shape, std, rng)
-    xavier(shape, rng)   # a.k.a. Glorot: std = sqrt(1 / fan_in)  (good for tanh/sigmoid)
-    he(shape, rng)       # Kaiming: std = sqrt(2 / fan_in)        (good for relu)
-
-`shape` is (fan_out, fan_in) to match DenseLayer's weight matrix.
+`shape` is (fan_out, fan_in) to match a dense weight matrix. Good init keeps the signal
+and gradient variance roughly constant across layers (avoids vanishing/exploding).
 """
 
 from __future__ import annotations
@@ -27,10 +19,14 @@ def normal(shape, std=0.5, rng=None):
 
 
 def xavier(shape, rng=None):
-    # TODO: std = sqrt(1 / fan_in), where fan_in = shape[1]
-    raise NotImplementedError("e10: implement xavier")
+    """Glorot: std = sqrt(1 / fan_in). Good for tanh/sigmoid."""
+    rng = rng or np.random.default_rng()
+    fan_in = shape[1] if len(shape) > 1 else shape[0]
+    return rng.normal(0.0, np.sqrt(1.0 / fan_in), size=shape)
 
 
 def he(shape, rng=None):
-    # TODO: std = sqrt(2 / fan_in)
-    raise NotImplementedError("e10: implement he")
+    """Kaiming: std = sqrt(2 / fan_in). Good for ReLU."""
+    rng = rng or np.random.default_rng()
+    fan_in = shape[1] if len(shape) > 1 else shape[0]
+    return rng.normal(0.0, np.sqrt(2.0 / fan_in), size=shape)

@@ -7,17 +7,17 @@ items off as you go. Status legend: `[ ]` todo · `[~]` in progress · `[x]` don
 
 ## Tier 0 — The Neuron  *(pure NumPy, by hand)*
 - [x] **e01 — Single neuron**: forward pass, weights, bias, activation. *(worked reference)*
-- [ ] **e02 — Perceptron gates**: implement the perceptron learning rule; train AND / OR / NOT.
-- [ ] **e03 — XOR fails**: prove a single linear neuron cannot learn XOR → motivates layers.
+- [x] **e02 — Perceptron gates**: the perceptron learning rule; trains AND / OR (converges).
+- [x] **e03 — XOR fails**: a single linear neuron cannot learn XOR → motivates layers.
 
 **Adds to core/:** `activations.py`, `neuron.py` (NumPy forward), `viz.py`.
 
 ## Tier 1 — Backprop & the autograd engine
-- [ ] **e04 — Autograd engine**: build `core/engine.py` `Value` (scalar reverse-mode autodiff).
-- [ ] **e05 — MLP solves XOR**: build an MLP on top of `Value`; train it; XOR finally works.
-- [ ] **e06 — Manual backprop**: derive gradients on paper for a 2-layer net, then gradient-check.
-- [ ] **e07 — Activation zoo**: sigmoid/tanh/relu/gelu; demonstrate vanishing gradients.
-- [ ] **e08 — Loss functions**: MSE vs cross-entropy; why CE for classification.
+- [x] **e04 — Autograd engine**: `core/engine.py` `Value` (scalar reverse-mode autodiff).
+- [x] **e05 — MLP solves XOR**: a `Value`-based MLP (`core/nn.py`) trains to 4/4 on XOR.
+- [x] **e06 — Manual backprop**: gradient-check vs central differences (error ~1e-11).
+- [x] **e07 — Activation zoo**: sigmoid vs ReLU — the vanishing-gradient demo.
+- [x] **e08 — Loss functions**: MSE vs cross-entropy; why CE for classification.
 
 **Adds to core/:** `engine.py` (Value), `losses.py`, `optim.py`, `init.py`.
 

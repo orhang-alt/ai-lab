@@ -10,11 +10,25 @@ import lab
 st.title("Experiments")
 
 tiers = lab.list_tiers()
-options = [(t, e) for t, exps in tiers.items() for e in exps]
-labels = [f"{lab.tier_label(t)}  —  {e.label}" for t, e in options]
+tier_names = list(tiers.keys())
 
-idx = st.selectbox("Experiment", range(len(options)), format_func=lambda i: labels[i])
-tier, exp = options[idx]
+# --- visible selectors, right in the main area -----------------------------
+tsel = st.segmented_control(
+    "Tier", tier_names, format_func=lab.tier_label, default=tier_names[0], key="exp_tier"
+) or tier_names[0]
+
+exps = tiers[tsel]
+e_idx = st.segmented_control(
+    "Experiment", list(range(len(exps))),
+    format_func=lambda i: f"{exps[i].id} · {exps[i].name}",
+    default=0, key=f"exp_idx_{tsel}",
+)
+if e_idx is None:
+    e_idx = 0
+exp = exps[e_idx]
+
+st.caption(f"{lab.tier_label(tsel)}  ·  `{exp.run_py.relative_to(lab.LAB_ROOT)}`")
+st.divider()
 
 overview, code, run, notes = st.tabs(["📄 Overview", "💻 Code", "▶ Run", "📝 Notes"])
 
@@ -37,5 +51,9 @@ with notes:
     current = lab.read(exp.notes)
     edited = st.text_area("notes.md", current, height=320, label_visibility="collapsed")
     if st.button("Save notes", icon=":material/save:"):
-        exp.notes.write_text(edited)
-        st.success("Saved.")
+        try:
+            exp.notes.write_text(edited)
+            st.success("Saved.")
+        except OSError as e:
+            st.warning(f"Couldn't save — on a hosted deploy the filesystem is read-only/"
+                       f"ephemeral, so notes don't persist. ({e})")
