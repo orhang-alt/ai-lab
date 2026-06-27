@@ -66,4 +66,10 @@ module = st.sidebar.segmented_control(
 st.sidebar.caption(f"Module: **{module}**")
 st.sidebar.divider()
 
-st.navigation(MODULES[module]).run()
+nav = st.navigation(MODULES[module])
+nav.run()
+
+# --- attribution footer, pinned to the bottom of the sidebar ---------------
+st.sidebar.divider()
+st.sidebar.caption("**Orhan Gökçöl's** personal AI lab")
+st.sidebar.caption("Free to use. 🧠")
