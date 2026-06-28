@@ -32,8 +32,8 @@ Opens at http://localhost:8501. `start.sh` writes a PID to `.gui.pid` and logs t
   the checkpoint template.
 - **Playgrounds** — interactive neuron, MLP, optimizer, regularization, attention,
   tokenization, and tiny-GPT lessons wired to the lab's reusable concepts.
-- **Experiments** — per-experiment Overview (README), Code, Run (captures stdout),
-  and an editable Notes tab saved back to `notes.md`.
+- **Experiments** — per-experiment Overview (README), Code, and Run (captures stdout).
+  The public UI is read-only; personal notes stay in local files, not browser-editable forms.
 - **Infobase** — renders the `infobase/*.md` notes.
 - **Tests** — runs `pytest -q` and shows passed/skipped/failed.
 - **Sandbox** — local-only Python scratchpad, enabled by `./start.sh` through
