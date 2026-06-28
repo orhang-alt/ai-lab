@@ -39,6 +39,18 @@ Opens at http://localhost:8501. `start.sh` writes a PID to `.gui.pid` and logs t
 - **Sandbox** — local-only Python scratchpad, enabled by `./start.sh` through
   `AILAB_ENABLE_SANDBOX=1`.
 
+## Languages
+- Sidebar language selector: English / Türkçe.
+- Nav titles, section headers and per-page chrome live in `gui/i18n.py` (the `TEXT` catalog).
+- **Page body text** (lesson prose, widget labels, metrics) stays English in the view files —
+  the single source of truth. `gui/catalog_tr.py` maps each English UI string to Turkish, and
+  `i18n.install_localization()` wraps Streamlit's text/widget helpers to swap them in when
+  Türkçe is selected. Anything not in the catalog (dynamic f-strings, SVG diagram labels)
+  falls back to English, so the app always renders.
+- Long Markdown content stays as Markdown. Add Turkish files beside English originals:
+  `README.tr.md`, `tier2_training.tr.md`, `sigmoid-derivative.tr.md`, etc. (read via
+  `read_localized`). If a Turkish file is missing, the app falls back to the English original.
+
 ## Layout
 ```
 gui/

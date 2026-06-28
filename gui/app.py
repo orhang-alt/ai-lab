@@ -19,6 +19,7 @@ import sys
 os.environ.setdefault("MPLBACKEND", "Agg")
 
 import streamlit as st
+import i18n
 import ui
 
 # Make the lab root importable so `import core` works without `pip install -e .`
@@ -27,86 +28,108 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 
 st.set_page_config(page_title="AI Lab", page_icon="🧠", layout="wide")
 ui.inject_theme()
+i18n.install_localization()  # transparently localizes static UI text when lang == "tr"
+
+# --- sidebar: brand + language/module selectors pinned to the TOP ----------
+with st.sidebar:
+    st.markdown(f"## 🧠 {i18n.t('app.brand')}")
+    i18n.select_language()
+    track_blurb = {
+        "ANN": i18n.t("track.ann"),
+        "ML": i18n.t("track.ml"),
+        "Math": i18n.t("track.math"),
+    }
+    module = st.segmented_control(
+        i18n.t("app.module"), ["ANN", "ML", "Math"], default="ANN", key="module",
+        help=i18n.t("app.module_help"),
+    ) or "ANN"
+    st.caption(track_blurb[module])
+    st.divider()
+
+
+def page(path: str, title_key: str, icon: str, *, default: bool = False):
+    return st.Page(path, title=i18n.t(title_key), icon=icon, default=default)
+
 
 # Shared across modules — a Python scratchpad with numpy + the lab's core preloaded.
-SANDBOX = st.Page("views/sandbox.py", title="Sandbox", icon=":material/code:")
-COACH = st.Page("views/study_coach.py", title="Study Coach", icon=":material/self_improvement:")
+SANDBOX = page("views/sandbox.py", "page.sandbox", ":material/code:")
+COACH = page("views/study_coach.py", "page.study_coach", ":material/self_improvement:")
 
 # Pages are grouped into sections that follow the learning path. Passing a {section: [pages]}
 # dict to st.navigation renders the keys as sidebar section headers (much less crowded).
 ANN = {
-    "Overview": [
-        st.Page("views/dashboard.py", title="Dashboard", icon=":material/dashboard:", default=True),
+    i18n.t("section.overview"): [
+        page("views/dashboard.py", "page.dashboard", ":material/dashboard:", default=True),
         COACH,
-        st.Page("views/the_chain.py", title="The big picture", icon=":material/route:"),
+        page("views/the_chain.py", "page.big_picture", ":material/route:"),
     ],
-    "Level 1 · The neuron": [
-        st.Page("views/playground.py", title="Neuron playground", icon=":material/tune:"),
-        st.Page("views/two_neurons.py", title="Two neurons", icon=":material/hub:"),
-        st.Page("views/neurons_compute.py", title="Neurons → computer", icon=":material/calculate:"),
+    i18n.t("section.level1"): [
+        page("views/playground.py", "page.neuron_playground", ":material/tune:"),
+        page("views/two_neurons.py", "page.two_neurons", ":material/hub:"),
+        page("views/neurons_compute.py", "page.neurons_compute", ":material/calculate:"),
     ],
-    "Level 2 · Training a net": [
-        st.Page("views/backprop.py", title="Backprop", icon=":material/sync_alt:"),
-        st.Page("views/mlp.py", title="MLP (train it)", icon=":material/network_node:"),
-        st.Page("views/optimizers.py", title="Optimizers", icon=":material/trending_down:"),
-        st.Page("views/deep_playground.py", title="Deep nets (2D)", icon=":material/blur_on:"),
-        st.Page("views/regularization.py", title="Regularization", icon=":material/tune:"),
+    i18n.t("section.level2"): [
+        page("views/backprop.py", "page.backprop", ":material/sync_alt:"),
+        page("views/mlp.py", "page.mlp", ":material/network_node:"),
+        page("views/optimizers.py", "page.optimizers", ":material/trending_down:"),
+        page("views/deep_playground.py", "page.deep_nets", ":material/blur_on:"),
+        page("views/regularization.py", "page.regularization", ":material/tune:"),
     ],
-    "Level 3 · Architectures": [
-        st.Page("views/cnn.py", title="CNN (images)", icon=":material/image:"),
-        st.Page("views/rnn.py", title="RNN (sequences)", icon=":material/repeat:"),
+    i18n.t("section.level3"): [
+        page("views/cnn.py", "page.cnn", ":material/image:"),
+        page("views/rnn.py", "page.rnn", ":material/repeat:"),
     ],
-    "Level 4 · Attention & Transformers": [
-        st.Page("views/tokenization.py", title="Tokenization", icon=":material/content_cut:"),
-        st.Page("views/attention.py", title="Attention (LLMs)", icon=":material/auto_awesome:"),
-        st.Page("views/transformer.py", title="Tiny GPT", icon=":material/smart_toy:"),
+    i18n.t("section.level4"): [
+        page("views/tokenization.py", "page.tokenization", ":material/content_cut:"),
+        page("views/attention.py", "page.attention", ":material/auto_awesome:"),
+        page("views/transformer.py", "page.tiny_gpt", ":material/smart_toy:"),
     ],
-    "Level 5 · LLMs in practice": [
-        st.Page("views/sampling.py", title="Decoding (sampling)", icon=":material/casino:"),
-        st.Page("views/embeddings.py", title="Embeddings & RAG", icon=":material/database:"),
-        st.Page("views/posttraining.py", title="Post-training (RLHF)", icon=":material/psychology:"),
+    i18n.t("section.level5"): [
+        page("views/sampling.py", "page.sampling", ":material/casino:"),
+        page("views/embeddings.py", "page.embeddings", ":material/database:"),
+        page("views/posttraining.py", "page.posttraining", ":material/psychology:"),
     ],
-    "Lab": [
-        st.Page("views/experiments.py", title="Experiments", icon=":material/science:"),
-        st.Page("views/infobase.py", title="Infobase", icon=":material/menu_book:"),
-        st.Page("views/tests.py", title="Tests", icon=":material/check_circle:"),
+    i18n.t("section.lab"): [
+        page("views/experiments.py", "page.experiments", ":material/science:"),
+        page("views/infobase.py", "page.infobase", ":material/menu_book:"),
+        page("views/tests.py", "page.tests", ":material/check_circle:"),
     ],
 }
 ML = {
-    "Overview": [
-        st.Page("views/ml_overview.py", title="ML overview", icon=":material/dashboard:", default=True),
-        st.Page("views/ml_foundations.py", title="M0 · Foundations", icon=":material/school:"),
+    i18n.t("section.overview"): [
+        page("views/ml_overview.py", "page.ml_overview", ":material/dashboard:", default=True),
+        page("views/ml_foundations.py", "page.ml_foundations", ":material/school:"),
     ],
-    "Supervised (M1–M4)": [
-        st.Page("views/ml_regression.py", title="M1 · Regression", icon=":material/timeline:"),
-        st.Page("views/ml_classification.py", title="M2 · Classification", icon=":material/scatter_plot:"),
-        st.Page("views/ml_trees.py", title="M3 · Trees & ensembles", icon=":material/account_tree:"),
-        st.Page("views/ml_svm.py", title="M4 · SVM & kernels", icon=":material/linear_scale:"),
+    i18n.t("section.supervised"): [
+        page("views/ml_regression.py", "page.ml_regression", ":material/timeline:"),
+        page("views/ml_classification.py", "page.ml_classification", ":material/scatter_plot:"),
+        page("views/ml_trees.py", "page.ml_trees", ":material/account_tree:"),
+        page("views/ml_svm.py", "page.ml_svm", ":material/linear_scale:"),
     ],
-    "Unsupervised (M5)": [
-        st.Page("views/ml_unsupervised.py", title="M5 · Unsupervised", icon=":material/bubble_chart:"),
+    i18n.t("section.unsupervised"): [
+        page("views/ml_unsupervised.py", "page.ml_unsupervised", ":material/bubble_chart:"),
     ],
-    "Practice (M6–M8)": [
-        st.Page("views/ml_model_selection.py", title="M6 · Model selection", icon=":material/checklist:"),
-        st.Page("views/ml_practical.py", title="M7 · Practical ML", icon=":material/build:"),
-        st.Page("views/ml_python.py", title="M8 · ML in Python", icon=":material/code:"),
+    i18n.t("section.practice"): [
+        page("views/ml_model_selection.py", "page.ml_model_selection", ":material/checklist:"),
+        page("views/ml_practical.py", "page.ml_practical", ":material/build:"),
+        page("views/ml_python.py", "page.ml_python", ":material/code:"),
     ],
 }
 MATH = {
-    "Overview": [
-        st.Page("views/math_overview.py", title="Math overview", icon=":material/dashboard:", default=True),
+    i18n.t("section.overview"): [
+        page("views/math_overview.py", "page.math_overview", ":material/dashboard:", default=True),
     ],
-    "Algebra & calculus": [
-        st.Page("views/math_vectors.py", title="X1 · Vectors & dot product", icon=":material/call_made:"),
-        st.Page("views/math_calculus.py", title="X2 · Calculus & gradients", icon=":material/show_chart:"),
+    i18n.t("section.algebra"): [
+        page("views/math_vectors.py", "page.math_vectors", ":material/call_made:"),
+        page("views/math_calculus.py", "page.math_calculus", ":material/show_chart:"),
     ],
-    "Probability & optimization": [
-        st.Page("views/math_probability.py", title="X3 · Probability & stats", icon=":material/bar_chart:"),
-        st.Page("views/math_optimization.py", title="X4 · Optimization", icon=":material/trending_down:"),
+    i18n.t("section.probability"): [
+        page("views/math_probability.py", "page.math_probability", ":material/bar_chart:"),
+        page("views/math_optimization.py", "page.math_optimization", ":material/trending_down:"),
     ],
-    "Information & numerics": [
-        st.Page("views/math_information.py", title="X5 · Information theory", icon=":material/data_usage:"),
-        st.Page("views/math_numerical.py", title="X6 · Numerical computing", icon=":material/calculate:"),
+    i18n.t("section.information"): [
+        page("views/math_information.py", "page.math_information", ":material/data_usage:"),
+        page("views/math_numerical.py", "page.math_numerical", ":material/calculate:"),
     ],
 }
 MODULES = {"ANN": ANN, "ML": ML, "Math": MATH}
@@ -117,23 +140,7 @@ MODULES = {"ANN": ANN, "ML": ML, "Math": MATH}
 SANDBOX_ENABLED = os.environ.get("AILAB_ENABLE_SANDBOX") == "1"
 if SANDBOX_ENABLED:
     for _sections in MODULES.values():
-        _sections["Tools"] = [SANDBOX]
-
-# --- sidebar: brand + module selector pinned to the TOP, then grouped links --
-TRACK_BLURB = {
-    "ANN": "Neural networks — a single neuron → a GPT.",
-    "ML": "Classical machine learning (M0–M8).",
-    "Math": "The foundations — dip in as needed.",
-}
-with st.sidebar:
-    st.markdown("## 🧠 AI Lab")
-    module = st.segmented_control(
-        "Module", list(MODULES), default="ANN", key="module",
-        help="ANN = neural networks (single neuron → GPT) · "
-             "ML = classical machine learning · Math = the maths behind both.",
-    ) or "ANN"
-    st.caption(TRACK_BLURB[module])
-    st.divider()
+        _sections[i18n.t("section.tools")] = [SANDBOX]
 
 # position="hidden": we render our own grouped links below, so the Module selector sits on top.
 nav = st.navigation(MODULES[module], position="hidden")
@@ -148,6 +155,6 @@ with st.sidebar:
         for p in pages:
             st.page_link(p)
     st.divider()
-    st.caption("**Orhan Gökçöl's** personal AI lab · free to use 🧠")
+    st.caption(f"{i18n.t('app.footer')} 🧠")
 
 nav.run()

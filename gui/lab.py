@@ -16,6 +16,7 @@ LAB_ROOT = Path(__file__).resolve().parents[1]
 EXPERIMENTS = LAB_ROOT / "experiments"
 INFOBASE = LAB_ROOT / "infobase"
 HEAVY_EXPERIMENT_IDS = {"e21"}
+SUPPORTED_LANGS = {"tr"}
 
 # ---------------------------------------------------------------------------
 # Experiment discovery
@@ -145,7 +146,11 @@ def status_of(exp: Experiment, timeout: int = 30, include_heavy: bool = True) ->
 
 
 def list_infobase() -> list[Path]:
-    return sorted(INFOBASE.rglob("*.md"))
+    return sorted(p for p in INFOBASE.rglob("*.md") if not is_localized_variant(p))
+
+
+def is_localized_variant(path: Path) -> bool:
+    return any(path.name.endswith(f".{language}{path.suffix}") for language in SUPPORTED_LANGS)
 
 
 def read(path: Path) -> str:
@@ -153,3 +158,14 @@ def read(path: Path) -> str:
         return path.read_text()
     except FileNotFoundError:
         return ""
+
+
+def localized_path(path: Path, language: str) -> Path:
+    if language == "en":
+        return path
+    localized = path.with_name(f"{path.stem}.{language}{path.suffix}")
+    return localized if localized.exists() else path
+
+
+def read_localized(path: Path, language: str) -> str:
+    return read(localized_path(path, language))

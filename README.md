@@ -57,6 +57,13 @@ pip install -e ".[gui]"
 
 See [`gui/README.md`](gui/README.md).
 
+## Languages
+
+The GUI supports English and Turkish. UI labels live in `gui/i18n.py`; longer
+Markdown content can add a Turkish sibling file such as `README.tr.md`,
+`checkpoint.tr.md`, or `adam-update.tr.md`. When Turkish is selected, the app
+uses the `.tr.md` file when present and falls back to English otherwise.
+
 ## How to use this lab
 
 1. Read the matching `infobase/` note for the concept.
