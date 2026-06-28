@@ -46,6 +46,7 @@ ML_PAGES = [
     st.Page("views/ml_unsupervised.py", title="M5 · Unsupervised", icon=":material/bubble_chart:"),
     st.Page("views/ml_model_selection.py", title="M6 · Model selection", icon=":material/checklist:"),
     st.Page("views/ml_practical.py", title="M7 · Practical ML", icon=":material/build:"),
+    st.Page("views/ml_python.py", title="M8 · ML in Python", icon=":material/code:"),
     SANDBOX,
 ]
 MATH_PAGES = [

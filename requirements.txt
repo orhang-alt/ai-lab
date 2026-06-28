@@ -3,6 +3,7 @@ streamlit>=1.36
 numpy>=1.26
 matplotlib>=3.8
 pandas>=2.0
+scikit-learn>=1.4   # M8 "ML in Python" — live worked examples
 
 # Testing (local only)
 pytest>=8.0

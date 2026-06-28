@@ -57,10 +57,41 @@ The tree picks whichever (feature, threshold) maximizes that gain.
 
 ## 4. Regression trees
 
-Same machinery, continuous target. The leaf predicts the **mean** of its training
-$y$'s, and splits are chosen to minimize **variance / MSE** in the children instead of
-Gini. The prediction surface is a **piecewise-constant staircase** — flexible, but it
-can't extrapolate beyond the training range.
+Everything above predicts a **class**. The *same* tree machinery also predicts a
+**number** — a price, a temperature, a demand — and then it's called a **regression
+tree**. Only two pieces change.
+
+**(a) What a leaf says.** A classification leaf outputs the *majority class* of its
+training points; a regression leaf outputs their **average $y$**. So once the yes/no
+questions route a new point down to a leaf, the prediction is simply the **mean target
+of the training points that landed in that same box**. (Every point in a box gets the
+*same* number — that's the key.)
+
+**(b) How splits are chosen.** Gini and entropy measure *class* mixing, which is
+meaningless for a number. Instead we measure **spread** with the variance (mean squared
+error) of the $y$'s in a node, and pick the split that **shrinks it most**:
+$$ \text{MSE(node)} = \tfrac1n\sum_i (y_i-\bar y)^2,\qquad \text{reduction} = \text{MSE(parent)} - \tfrac{n_L}{n}\text{MSE}(L) - \tfrac{n_R}{n}\text{MSE}(R). $$
+A good split groups similar $y$'s together, so each child is "tighter" (lower variance)
+than the parent — the regression analogue of making a node purer.
+
+Because every leaf returns **one constant number**, the prediction as you sweep $x$ is a
+**piecewise-constant staircase**: flat inside each box, jumping at each split. A
+**shallow** tree makes a few wide steps (a coarse summary); a **deep** tree makes many
+narrow steps that trace every wiggle — including the noise (overfitting, §5):
+
+<div style="text-align:center;margin:0.6rem 0"><svg viewBox="0 0 480 300" style="width:100%;max-width:470px;height:auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A regression tree predicts a piecewise-constant staircase. A shallow depth-2 tree makes a few wide steps; a deep depth-6 tree makes many narrow steps that chase the noisy data points."><rect x="1" y="1" width="478" height="298" rx="14" fill="#FAFAF7" stroke="#E2E2DA"/><line x1="45" y1="255" x2="448" y2="255" stroke="#C9C8C1" stroke-width="1.2"/><line x1="45" y1="50" x2="45" y2="255" stroke="#C9C8C1" stroke-width="1.2"/><polyline points="50,174 62,174 63,140 68,140 69,139 72,139 72,147 73,147 74,136 107,136 108,91 140,91 141,94 148,94 149,71 158,71 159,87 201,87 202,92 205,92 206,137 214,137 215,116 231,116 232,163 246,163 247,157 258,157 259,174 285,174 286,234 309,234 310,212 314,212 315,213 339,213 340,182 364,182 365,212 372,212 373,172 384,172 385,180 396,180 397,137 399,137 400,149 415,149 416,80 434,80 435,92 440,92" fill="none" stroke="#C0507A" stroke-width="1.5"/><polyline points="50,146 107,146 108,97 231,97 232,188 396,188 397,115 440,115" fill="none" stroke="#9A6A2A" stroke-width="2.6"/><g fill="#185FA5"><circle cx="57" cy="174" r="3.6"/><circle cx="68" cy="140" r="3.6"/><circle cx="69" cy="139" r="3.6"/><circle cx="71" cy="140" r="3.6"/><circle cx="74" cy="147" r="3.6"/><circle cx="75" cy="136" r="3.6"/><circle cx="139" cy="91" r="3.6"/><circle cx="141" cy="94" r="3.6"/><circle cx="156" cy="71" r="3.6"/><circle cx="161" cy="91" r="3.6"/><circle cx="200" cy="82" r="3.6"/><circle cx="203" cy="92" r="3.6"/><circle cx="209" cy="137" r="3.6"/><circle cx="220" cy="116" r="3.6"/><circle cx="242" cy="163" r="3.6"/><circle cx="251" cy="157" r="3.6"/><circle cx="267" cy="174" r="3.6"/><circle cx="304" cy="234" r="3.6"/><circle cx="314" cy="212" r="3.6"/><circle cx="315" cy="213" r="3.6"/><circle cx="364" cy="182" r="3.6"/><circle cx="365" cy="212" r="3.6"/><circle cx="379" cy="172" r="3.6"/><circle cx="389" cy="187" r="3.6"/><circle cx="390" cy="175" r="3.6"/><circle cx="393" cy="178" r="3.6"/><circle cx="399" cy="137" r="3.6"/><circle cx="400" cy="149" r="3.6"/><circle cx="430" cy="80" r="3.6"/><circle cx="440" cy="92" r="3.6"/></g><g font-family="sans-serif" font-size="11.5"><circle cx="230" cy="36" r="4" fill="#185FA5"/><text x="238" y="40" fill="#0C447C">data</text><line x1="284" y1="36" x2="306" y2="36" stroke="#9A6A2A" stroke-width="2.6"/><text x="310" y="40" fill="#9A6A2A">depth 2</text><line x1="372" y1="36" x2="394" y2="36" stroke="#C0507A" stroke-width="1.5"/><text x="398" y="40" fill="#C0507A">depth 6</text></g><text x="441" y="272" font-family="sans-serif" font-size="12" fill="#9C9B95">x</text><text x="32" y="54" font-family="sans-serif" font-size="12" fill="#9C9B95">y</text></svg></div>
+
+**A one-line example.** A node holds four houses priced `[200k, 210k, 400k, 420k]`; their
+mean (307.5k) is a poor single guess. Split on *"size &lt; 100 m²"* into `[200k, 210k]`
+and `[400k, 420k]`: the children now predict ~205k and ~410k — far tighter, so this split
+wins and the tree keeps going.
+
+**The big limitation — no extrapolation.** A leaf only ever returns an *average of
+training $y$'s*, so predictions are **boxed into the training range**. Give the tree an
+$x$ beyond anything it saw and it just repeats the last step's value — it **cannot
+continue a trend** the way a line $\hat y = wx+b$ does (notice the flat steps at both ends
+of the staircase). Rule of thumb: trends that run off the edge of the data → a linear
+model; flexible local structure → trees (and their ensembles, §7–§9).
 
 ## 5. Stopping & pruning (controlling overfitting)
 
@@ -114,6 +145,12 @@ Build trees **sequentially**, each correcting the *current* ensemble's mistakes.
 loss** (for squared error, just the residuals $y-\hat y$), then add it scaled by a small
 **learning rate** $\eta$ (shrinkage):
 $$ F_{m}(x) = F_{m-1}(x) + \eta\, h_m(x). $$
+
+Watch it converge: start from the flat mean $F_0$, then each added tree bends the
+prediction a little closer to the data — coarse after 1 tree, accurate after 60:
+
+<div style="text-align:center;margin:0.6rem 0"><svg viewBox="0 0 480 300" style="width:100%;max-width:470px;height:auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Gradient boosting starts from the flat mean F0 and adds shallow trees one at a time; after 1 tree the fit is coarse, after 8 closer, after 60 it tracks the data well."><rect x="1" y="1" width="478" height="298" rx="14" fill="#FAFAF7" stroke="#E2E2DA"/><line x1="45" y1="255" x2="448" y2="255" stroke="#C9C8C1" stroke-width="1.2"/><line x1="45" y1="50" x2="45" y2="255" stroke="#C9C8C1" stroke-width="1.2"/><g fill="#185FA5"><circle cx="57" cy="174" r="3"/><circle cx="68" cy="140" r="3"/><circle cx="69" cy="139" r="3"/><circle cx="71" cy="140" r="3"/><circle cx="74" cy="147" r="3"/><circle cx="75" cy="136" r="3"/><circle cx="139" cy="91" r="3"/><circle cx="141" cy="94" r="3"/><circle cx="156" cy="71" r="3"/><circle cx="161" cy="91" r="3"/><circle cx="200" cy="82" r="3"/><circle cx="203" cy="92" r="3"/><circle cx="209" cy="137" r="3"/><circle cx="220" cy="116" r="3"/><circle cx="242" cy="163" r="3"/><circle cx="251" cy="157" r="3"/><circle cx="267" cy="174" r="3"/><circle cx="304" cy="234" r="3"/><circle cx="314" cy="212" r="3"/><circle cx="315" cy="213" r="3"/><circle cx="364" cy="182" r="3"/><circle cx="365" cy="212" r="3"/><circle cx="379" cy="172" r="3"/><circle cx="389" cy="187" r="3"/><circle cx="390" cy="175" r="3"/><circle cx="393" cy="178" r="3"/><circle cx="399" cy="137" r="3"/><circle cx="400" cy="149" r="3"/><circle cx="430" cy="80" r="3"/><circle cx="440" cy="92" r="3"/></g><line x1="50" y1="146" x2="440" y2="146" stroke="#B0AFA8" stroke-width="1.3" stroke-dasharray="5 3"/><polyline points="50,146 107,146 108,136 231,136 232,154 396,154 397,139 440,139" fill="none" stroke="#9FD3BE" stroke-width="2"/><polyline points="50,157 62,157 63,142 107,142 108,102 205,102 206,128 231,128 232,160 258,160 259,180 285,180 286,188 372,188 373,173 396,173 397,148 415,148 416,104 440,104" fill="none" stroke="#3DA17F" stroke-width="2"/><polyline points="50,172 62,172 63,140 72,140 72,144 73,144 74,136 107,136 108,92 148,92 149,74 158,74 159,88 201,88 202,92 205,92 206,132 214,132 215,121 231,121 232,158 258,158 259,178 285,178 286,229 309,229 310,213 339,213 340,187 364,187 365,208 372,208 373,175 384,175 385,184 389,184 390,176 396,176 397,141 399,141 400,147 415,147 416,83 434,83 435,91 440,91" fill="none" stroke="#0E5E45" stroke-width="2.4"/><g font-family="sans-serif" font-size="11"><line x1="40" y1="34" x2="58" y2="34" stroke="#9FD3BE" stroke-width="2.4"/><text x="62" y="38" fill="#3DA17F">1 tree</text><line x1="116" y1="34" x2="134" y2="34" stroke="#3DA17F" stroke-width="2.4"/><text x="138" y="38" fill="#3DA17F">8 trees</text><line x1="206" y1="34" x2="224" y2="34" stroke="#0E5E45" stroke-width="2.4"/><text x="228" y="38" fill="#0E5E45">60 trees</text><line x1="320" y1="34" x2="338" y2="34" stroke="#B0AFA8" stroke-width="1.3" stroke-dasharray="5 3"/><text x="342" y="38" fill="#9C9B95">F₀ mean</text></g><text x="441" y="272" font-family="sans-serif" font-size="12" fill="#9C9B95">x</text><text x="32" y="54" font-family="sans-serif" font-size="12" fill="#9C9B95">y</text></svg></div>
+
 Many shallow "weak" trees combine into a strong learner — this **reduces bias** and is,
 on most **tabular** problems, the state of the art (**XGBoost, LightGBM, CatBoost**).
 Regularize with small $\eta$ (+ more rounds), shallow trees (depth 3–8), row/column
@@ -931,3 +968,194 @@ _M7_QUIZ = [
 ]
 
 PRACTICAL = Lesson("practical", "Practical ML", _M7_THEORY, _M7_QUIZ, _M7_TASKS, _M7_REFS)
+
+
+# ===========================================================================
+# M8 — ML in Python (the practical toolkit, with runnable examples)
+# ===========================================================================
+_M8_THEORY = r"""
+## 1. The Python ML stack
+
+Almost all classical ML in Python rests on a handful of libraries:
+
+- **NumPy** — n-dimensional arrays + fast vectorized math. The substrate everything builds on (it's what our `core/` uses).
+- **pandas** — labeled tables (`DataFrame`) for loading, cleaning and joining real data (CSV, Excel, SQL, Parquet).
+- **scikit-learn** — the workhorse: dozens of models + preprocessing + model-selection tools behind **one consistent API**. For tabular data, this *is* "doing ML in Python".
+- **matplotlib** / seaborn — plotting.
+- **statsmodels** — classical statistics & inference (p-values, confidence intervals).
+- **XGBoost / LightGBM** — gradient-boosted trees; usually the top accuracy on tabular data.
+- **PyTorch / TensorFlow / JAX** — deep learning for images, text, audio (the ANN module's world).
+
+**Rule of thumb:** tabular data → scikit-learn (+ XGBoost); images / text / sequences → PyTorch.
+
+## 2. The scikit-learn API — learn it once, use it everywhere
+
+Every model (an *estimator*) obeys the same tiny contract:
+
+- `model.fit(X, y)` — **learn** from data.
+- `model.predict(X)` — **predict** labels/values (`predict_proba` gives class probabilities).
+- `model.score(X, y)` — a **default metric** (accuracy for classifiers, R² for regressors).
+
+Preprocessors (*transformers*) use `fit` then `transform` (or `fit_transform`). Here `X` is a 2-D
+array/DataFrame of shape `(n_samples, n_features)` and `y` is 1-D `(n_samples,)`. Because the API is
+uniform, swapping one model for another is a **one-line change**:
+
+```python
+from sklearn.linear_model import LogisticRegression
+model = LogisticRegression(max_iter=1000)
+model.fit(X_train, y_train)            # learn
+preds = model.predict(X_test)          # use
+acc   = model.score(X_test, y_test)    # evaluate
+```
+
+Change `LogisticRegression()` to `RandomForestClassifier()` or `SVC()` and everything else stays the same.
+
+## 3. The standard workflow
+
+1. **Load** — `df = pandas.read_csv("data.csv")`.
+2. **Explore** — `df.describe()`, `df.info()`, plots, check missing values & class balance.
+3. **Split** — `train_test_split(...)`; hold out a test set you **never** tune on.
+4. **Preprocess** — scale numbers, encode categories, impute missing — **inside a Pipeline**.
+5. **Train** — `fit` on the training set.
+6. **Evaluate** — accuracy / precision-recall / R² on held-out data; cross-validate.
+7. **Tune** — `GridSearchCV` / `RandomizedSearchCV` over hyperparameters.
+8. **Persist** — `joblib.dump(model, "model.joblib")` for production.
+
+## 4. A complete classification example
+
+```python
+from sklearn.datasets import load_wine
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import make_pipeline
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+
+X, y = load_wine(return_X_y=True)                 # 178 samples, 13 features, 3 classes
+X_tr, X_te, y_tr, y_te = train_test_split(
+    X, y, test_size=0.25, random_state=0, stratify=y)
+
+model = make_pipeline(StandardScaler(),           # scale, then classify
+                      LogisticRegression(max_iter=1000))
+model.fit(X_tr, y_tr)
+
+preds = model.predict(X_te)
+print("test accuracy:", accuracy_score(y_te, preds))
+print(classification_report(y_te, preds))
+print(confusion_matrix(y_te, preds))
+print("5-fold CV:", cross_val_score(model, X, y, cv=5).mean())
+```
+
+The **🧪 Live examples** tab runs exactly this — pick the dataset and model and watch it retrain.
+
+## 5. Pipelines — preprocessing + model as ONE object
+
+Always wrap preprocessing and the model in a `Pipeline`. Two reasons:
+
+- **No data leakage** — the scaler is fit on the *training fold only*, automatically, even inside cross-validation.
+- **One object** to fit, predict, save and deploy — production gets the identical transforms.
+
+```python
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+pipe = make_pipeline(StandardScaler(), LogisticRegression())
+pipe.fit(X_train, y_train)
+```
+
+For mixed column types, `ColumnTransformer` scales numeric columns and one-hot-encodes categorical ones in one shot.
+
+## 6. Cross-validation & hyperparameter search
+
+```python
+from sklearn.model_selection import cross_val_score, GridSearchCV
+
+cross_val_score(pipe, X, y, cv=5)                 # 5 honest held-out scores
+
+grid = GridSearchCV(pipe,
+                    {"logisticregression__C": [0.1, 1, 10]},
+                    cv=5)
+grid.fit(X, y)
+print(grid.best_params_, grid.best_score_)
+```
+
+That's the M6 cross-validation picture in a few lines of code.
+
+## 7. Evaluating properly
+
+```python
+from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.metrics import mean_squared_error, r2_score
+print(classification_report(y_test, preds))       # precision / recall / F1 per class
+```
+
+Pick the metric that matches the **cost of errors** (M6): accuracy is misleading on imbalanced data —
+prefer precision/recall, F1, or ROC-AUC. For regression use RMSE and R².
+
+## 8. Saving & shipping a model
+
+```python
+import joblib
+joblib.dump(model, "model.joblib")    # save the fitted PIPELINE
+model = joblib.load("model.joblib")   # load later in production
+```
+
+Persist the **whole pipeline** (preprocessing + model) so the serving code applies identical transforms.
+
+## 9. When to leave scikit-learn
+
+scikit-learn is ideal for **tabular** data up to ~millions of rows. Reach beyond it for:
+
+- **XGBoost / LightGBM** — usually the best tabular accuracy (boosted trees).
+- **PyTorch** — images, text, audio, anything that needs deep nets / GPUs → the **ANN module**.
+
+## 10. The honest 80/20
+
+In real projects ~**80% of effort is data** (M7) — getting, cleaning, joining, building features — and
+the modeling above is the easy 20%. Good data with a simple scikit-learn model beats a fancy model on
+bad data, every time.
+"""
+
+_M8_QUIZ = [
+    Question("What are scikit-learn's three core estimator methods?",
+             ["`load` / `run` / `report`", "`fit` / `predict` / `score`",
+              "`train` / `test` / `deploy`", "`compile` / `fit` / `evaluate`"], 1,
+             "`fit` learns, `predict` uses the model, `score` gives a default metric. Transformers add `transform`."),
+    Question("Why wrap preprocessing and the model in a Pipeline?",
+             ["It runs faster", "It prevents data leakage (the scaler is fit on the training fold only) and bundles everything into one object",
+              "It is required by Python", "It removes the need for a test set"], 1,
+             "A Pipeline fits preprocessing on training data only — automatically correct inside cross-validation — and saves/deploys as one object."),
+    Question("For tabular data the go-to library is ___; for images/text it's ___.",
+             ["PyTorch; scikit-learn", "pandas; NumPy",
+              "scikit-learn; PyTorch", "statsmodels; XGBoost"], 2,
+             "scikit-learn dominates classical/tabular ML; deep learning on images/text/audio uses PyTorch (or TF/JAX)."),
+    Question("What does `train_test_split` give you?",
+             ["A faster model", "A held-out test set you never tune on, for an honest performance estimate",
+              "Automatic feature selection", "Cross-validation folds"], 1,
+             "It carves out data the model never sees during training/tuning, so the reported score isn't optimistic."),
+    Question("Roughly how is effort split in a real ML project?",
+             ["80% modeling, 20% data", "50/50",
+              "~80% data wrangling & features, ~20% modeling", "100% modeling"], 2,
+             "Most of the work is getting and shaping data (M7). A simple model on great data usually wins."),
+]
+
+_M8_TASKS = r"""
+- In the **Live examples** tab, switch the dataset and the model and watch accuracy + the confusion
+  matrix change — note which models need scaling (SVM, logistic) and which don't (random forest).
+- Copy the §4 example into a notebook (or the 🐍 Sandbox if enabled) and **swap** `LogisticRegression`
+  for `RandomForestClassifier` — change one line, rerun.
+- Add a `GridSearchCV` over `C` (logistic) or `n_estimators`/`max_depth` (forest); print `best_params_`.
+- Load a **CSV of your own** with `pandas.read_csv`, then `df.info()` / `df.describe()` before modeling.
+- Wrap a `ColumnTransformer` (scale numeric + one-hot categorical) inside a Pipeline on a mixed-type dataset.
+- `joblib.dump` your fitted pipeline, reload it, and confirm `predict` gives identical results.
+"""
+
+_M8_REFS = r"""
+- **scikit-learn User Guide** — scikit-learn.org/stable/user_guide.html (the single best reference).
+- **scikit-learn "Getting Started"** + the *Choosing the right estimator* cheat-sheet.
+- Géron, *Hands-On Machine Learning with Scikit-Learn, Keras & TensorFlow* (3rd ed.) — the standard practical book.
+- VanderPlas, *Python Data Science Handbook* (free online) — NumPy / pandas / matplotlib / sklearn.
+- **pandas** docs — *10 minutes to pandas*; **XGBoost** docs for boosted trees.
+- Ties to this lab: M0–M7 (the concepts), and the **ANN module** for the PyTorch/deep-learning path.
+"""
+
+PYTHON_ML = Lesson("python_ml", "ML in Python", _M8_THEORY, _M8_QUIZ, _M8_TASKS, _M8_REFS)
