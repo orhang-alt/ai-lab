@@ -1,7 +1,6 @@
 """Numerical gradient check for the autograd engine.
 
-Skips automatically until you implement core/engine.py (e04). Once implemented,
-it verifies analytic gradients match central-difference numerical gradients.
+Verifies analytic gradients match central-difference numerical gradients.
 """
 
 import pytest
@@ -19,7 +18,7 @@ def _engine_ready():
 
 
 pytestmark = pytest.mark.skipif(
-    not _engine_ready(), reason="core/engine.py not implemented yet (e04)"
+    not _engine_ready(), reason="core/engine.py unavailable"
 )
 
 

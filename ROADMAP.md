@@ -38,7 +38,7 @@ items off as you go. Status legend: `[ ]` todo · `[~]` in progress · `[x]` don
 - [ ] e18 — Attention from scratch (single head, by hand).
 - [ ] e19 — Multi-head self-attention.
 - [ ] e20 — A full Transformer block (residual + LayerNorm + MLP).
-- [ ] e21 — **nanoGPT-style char-level GPT** on a tiny corpus.
+- [x] e21 — **nanoGPT-style char-level GPT** on a tiny corpus.
 - [ ] e22 — BPE tokenization.
 
 ## Tier 5 — LLM

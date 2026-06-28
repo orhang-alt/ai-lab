@@ -15,6 +15,7 @@ from pathlib import Path
 LAB_ROOT = Path(__file__).resolve().parents[1]
 EXPERIMENTS = LAB_ROOT / "experiments"
 INFOBASE = LAB_ROOT / "infobase"
+HEAVY_EXPERIMENT_IDS = {"e21"}
 
 # ---------------------------------------------------------------------------
 # Experiment discovery
@@ -39,6 +40,10 @@ class Experiment:
     @property
     def label(self) -> str:
         return f"{self.id} · {self.name}"
+
+    @property
+    def is_heavy(self) -> bool:
+        return self.id in HEAVY_EXPERIMENT_IDS
 
     @property
     def readme(self) -> Path:
@@ -121,9 +126,11 @@ def _base_env():
     return env
 
 
-def status_of(exp: Experiment, timeout: int = 30) -> str:
-    """'done' if run.py exits 0, 'todo' if it hits a NotImplementedError stub,
-    'error' otherwise (e.g. a real bug or an unimplemented dependency)."""
+def status_of(exp: Experiment, timeout: int = 30, include_heavy: bool = True) -> str:
+    """Return done / todo / error, or heavy when a costly experiment is skipped."""
+    if exp.is_heavy and not include_heavy:
+        return "heavy"
+
     code, out = run_script(exp.run_py, timeout=timeout)
     if code == 0:
         return "done"

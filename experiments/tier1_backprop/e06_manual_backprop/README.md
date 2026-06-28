@@ -1,6 +1,6 @@
 # e06 — Manual Backprop + Gradient Checking
 
-> **Stub. Mostly pen-and-paper, then verify in code.**
+> **Implemented in `run.py`.** Mostly pen-and-paper, then verify in code.
 
 ## Concept
 Before trusting autograd, derive the gradients of a tiny 2-layer net **by hand**,

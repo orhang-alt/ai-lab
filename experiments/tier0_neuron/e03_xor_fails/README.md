@@ -1,6 +1,7 @@
 # e03 — Why a Single Neuron Cannot Learn XOR
 
-> **Stub — you implement this.** The "wall" that motivates multi-layer networks.
+> **Implemented in `run.py`.** This is the "wall" that motivates multi-layer
+> networks.
 
 ## Concept
 XOR is **not linearly separable**: no single straight line separates the
@@ -12,7 +13,7 @@ input space with *one* hyperplane, so it cannot represent XOR — this is the
 Running the e02 perceptron rule on XOR will **never converge**: the
 misclassification count oscillates and never reaches 0, no matter how many epochs.
 
-## Method (implement in `run.py`)
+## Method
 1. Reuse `train_perceptron` from e02 (import it) with the XOR targets.
 2. Run for many epochs; plot/print misclassifications per epoch.
 3. (Optional) plot the four points and try to draw one line splitting them.

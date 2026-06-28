@@ -27,4 +27,4 @@ if st.button("Run pytest", icon=":material/play_arrow:", type="primary"):
     (st.success if rc == 0 else st.error)(f"exit code {rc}")
     st.code(out, language="text")
 else:
-    st.info("Skipped grad-check tests turn green once you implement `core/engine.py` (e04).")
+    st.info("Run the test suite to check the neuron, autograd engine, losses, optimizers, and MLP plumbing.")

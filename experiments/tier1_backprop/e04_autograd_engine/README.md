@@ -1,7 +1,7 @@
 # e04 — Build a Scalar Autograd Engine
 
-> **Stub — you implement `core/engine.py`.** This is the conceptual heart of the
-> whole lab. Reference: Karpathy's `micrograd` (try yourself before peeking).
+> **Implemented in `core/engine.py`.** This is the conceptual heart of the whole
+> lab. Reference: Karpathy's `micrograd`.
 
 ## Concept
 Backprop = the chain rule applied to a computation graph. If you can build the
@@ -17,7 +17,7 @@ A ~150-line `Value` class supporting `+`, `*`, `**`, `tanh`, `relu`, and
 (finite-difference) gradients for arbitrary expressions.
 
 ## Method
-1. Implement the TODOs in `core/engine.py`.
+1. Read `core/engine.py` and trace each local derivative rule.
 2. Run the smoke test in `run.py` (the `a*b+c` example).
 3. Validate with `pytest tests/test_engine_gradcheck.py` (numerical gradient check).
 

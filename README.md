@@ -46,12 +46,13 @@ Then read [`experiments/tier0_neuron/e01_single_neuron/README.md`](experiments/t
 
 ## Or launch the GUI
 
-A local Streamlit dashboard ties it all together — interactive neuron playground,
-experiment runner, infobase reader, roadmap progress, and test runner:
+A local Streamlit dashboard ties it all together — ANN, classical ML, and math
+tracks; interactive playgrounds; experiment runner; infobase reader; roadmap
+progress; and test runner:
 
 ```bash
 pip install -e ".[gui]"
-streamlit run gui/app.py
+./start.sh
 ```
 
 See [`gui/README.md`](gui/README.md).

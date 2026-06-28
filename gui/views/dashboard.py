@@ -92,33 +92,41 @@ st.divider()
 # Build status — runs each experiment's run.py (done / todo / error)
 # --------------------------------------------------------------------------- #
 st.subheader("🔬 Experiment build status")
-st.caption("Live status of the code experiments under `experiments/` (each run.py is executed).")
+st.caption("Live status of the code experiments under `experiments/`. Heavy training demos are skipped by default.")
 
 
 @st.cache_data(show_spinner="Scanning experiments…")
-def scan():
-    """Run each experiment once; status = done / todo / error."""
+def scan(include_heavy: bool):
+    """Run each experiment once; status = done / todo / error / heavy."""
     out = {}
     for tier, exps in lab.list_tiers().items():
-        out[tier] = [(e, lab.status_of(e)) for e in exps]
+        out[tier] = [(e, lab.status_of(e, include_heavy=include_heavy)) for e in exps]
     return out
 
 
-ICON = {"done": "🟢", "todo": "⚪", "error": "🔴"}
+ICON = {"done": "🟢", "todo": "⚪", "error": "🔴", "heavy": "⏱️"}
 
 top = st.container()
-if st.button("Re-scan", icon=":material/refresh:"):
+controls = st.columns([0.7, 0.3])
+include_heavy = controls[0].checkbox(
+    "Include heavy training demos",
+    value=False,
+    help="Runs slower experiments such as e21 nanoGPT. Leave off for a quick dashboard scan.",
+)
+if controls[1].button("Re-scan", icon=":material/refresh:"):
     scan.clear()
 
-data = scan()
+data = scan(include_heavy)
 flat = [s for rows in data.values() for _, s in rows]
 done = flat.count("done")
+heavy = flat.count("heavy")
 
 with top:
-    c1, c2, c3 = st.columns(3)
+    c1, c2, c3, c4 = st.columns(4)
     c1.metric("Experiments", len(flat))
     c2.metric("Done", done)
-    c3.metric("Remaining", len(flat) - done)
+    c3.metric("Deferred", heavy)
+    c4.metric("Remaining", len(flat) - done - heavy)
     st.progress(done / len(flat) if flat else 0.0)
 
 for tier, rows in data.items():

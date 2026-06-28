@@ -1,7 +1,8 @@
 # AI Lab GUI
 
-A local Streamlit dashboard over the lab. It's a thin, pure-Python layer that
-*reads the lab from disk* and *reuses `core/`* — it never duplicates lab logic.
+A local Streamlit app over the lab. It's a thin, pure-Python layer that *reads the
+lab from disk* and *reuses `core/`* — it keeps lessons, experiments, tests, and
+scratch work in one place.
 
 ## Launch
 ```bash
@@ -19,16 +20,22 @@ streamlit run gui/app.py
 Opens at http://localhost:8501. `start.sh` writes a PID to `.gui.pid` and logs to
 `.gui.log` (both git-ignored).
 
-## Screens
-- **Dashboard** — scans every experiment (runs `run.py`; 🟢 done / ⚪ todo / 🔴 error),
-  shows tier progress, embeds `ROADMAP.md`.
-- **Playground** — interactive single neuron wired to `core.neuron.Neuron`: sliders
-  for w₀/w₁/bias, activation picker, gate presets, live response surface + decision
-  boundary + truth table.
+## Tracks and screens
+- **ANN** — a single neuron → backprop → architectures → attention → LLM practice.
+- **ML** — classical machine-learning foundations, supervised/unsupervised methods,
+  model selection, practical ML, and worked Python examples.
+- **Math** — vectors, calculus, probability, optimization, information theory, and
+  numerical computing.
+- **Dashboard** — shows the learning path, scans lightweight experiments by default
+  (`run.py`; 🟢 done / ⚪ todo / 🔴 error / ⏱️ deferred), and embeds `ROADMAP.md`.
+- **Playgrounds** — interactive neuron, MLP, optimizer, regularization, attention,
+  tokenization, and tiny-GPT lessons wired to the lab's reusable concepts.
 - **Experiments** — per-experiment Overview (README), Code, Run (captures stdout),
   and an editable Notes tab saved back to `notes.md`.
 - **Infobase** — renders the `infobase/*.md` notes.
 - **Tests** — runs `pytest -q` and shows passed/skipped/failed.
+- **Sandbox** — local-only Python scratchpad, enabled by `./start.sh` through
+  `AILAB_ENABLE_SANDBOX=1`.
 
 ## Layout
 ```
@@ -37,6 +44,8 @@ gui/
 ├── lab.py            # disk discovery + run helpers (the only "model" layer)
 └── views/            # one file per screen
     ├── dashboard.py
+    ├── ml_*.py
+    ├── math_*.py
     ├── playground.py
     ├── experiments.py
     ├── infobase.py

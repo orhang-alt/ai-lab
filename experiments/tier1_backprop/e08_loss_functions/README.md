@@ -1,6 +1,6 @@
 # e08 — Loss Functions: MSE vs Cross-Entropy
 
-> **Stub — you implement `core/losses.py`.**
+> **Implemented in `core/losses.py` and demonstrated in `run.py`.**
 
 ## Concept
 The loss defines *what* the network optimizes. For regression, MSE; for
@@ -14,8 +14,8 @@ Read [`infobase/00_foundations/loss-functions.md`](../../../infobase/00_foundati
 For a saturated sigmoid output that is confidently *wrong*, MSE gives a tiny
 gradient (slow learning) while BCE gives a large one (fast correction).
 
-## Method (implement in `run.py`)
-1. Implement `mse`, `bce`, `cross_entropy` in `core/losses.py`.
+## Method
+1. Read `mse`, `bce`, `cross_entropy` in `core/losses.py`.
 2. For a single sigmoid neuron with target 1 and output ≈ 0.001 (confident, wrong),
    compute dL/dz under MSE vs BCE; compare magnitudes.
 3. (Optional) verify softmax+CE gradient equals `softmax(logits) − onehot(y)`.

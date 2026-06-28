@@ -1,6 +1,7 @@
 # e02 — The Perceptron Learning Rule
 
-> **Stub — you implement this.** See `run.py` for the TODOs.
+> **Implemented in `run.py`.** Read the training loop and then try changing the
+> learning rate, initialization seed, or target gate.
 
 ## Concept
 In e01 you *hand-set* the weights. Here the neuron **learns** them from examples
@@ -19,8 +20,8 @@ For a **linearly separable** gate (AND, OR), the perceptron rule converges to
 weights that classify all examples correctly, in a finite number of passes
 (the Perceptron Convergence Theorem).
 
-## Method (implement in `run.py`)
-1. Start from `core.neuron.Neuron(2, activation="step")` with random/zero weights.
+## Method
+1. Start from `core.neuron.Neuron(2, activation="step")` with small random weights.
 2. Loop over epochs; for each training example apply the update rule above.
 3. Track the number of misclassifications per epoch.
 4. Run for AND, then OR.
