@@ -50,62 +50,96 @@ _FLOW_SVG = '''<div style="text-align:center;margin:0.5rem 0"><svg viewBox="0 0 
 _THEORY = r"""
 ## 1. Why attention
 
-An MLP mixes its inputs with **fixed** weights, and an RNN squeezes a whole sequence
-through one small state. **Attention** lets each token **dynamically pull information from
-any other token** — near or far — choosing *what to look at* based on content. That single
-idea is what made **Transformers**, and therefore modern **LLMs**, possible.
+An MLP mixes its inputs with **fixed** weights — it treats position 3 the same way every
+time. An RNN threads a sequence through one small running state, so distant tokens blur and
+it must process **step by step** (slow). **Attention** lets each token **dynamically pull
+information from any other token** — near or far, all in parallel — choosing *what to look
+at* based on **content**, not position. That one idea removed the sequence bottleneck and
+made **Transformers** (and modern **LLMs**) possible.
 
-## 2. Query, Key, Value
+## 2. Tokens are vectors
 
-For every token the model produces three vectors (learned linear projections of its
-embedding):
+First, text is split into **tokens** (here: characters; real LLMs use sub-word pieces), and
+each token becomes a learned **embedding** vector. A length-$n$ sequence is then a matrix
+$X$ of shape $n \times d$ (sequence length × model width). Everything below is operations on
+these vectors — and "similarity" between them *is* the dot product (Math X1).
+
+## 3. Query, Key, Value
+
+From each token's vector the model makes three new vectors via **learned linear
+projections** $W_Q,W_K,W_V$:
+$$ Q = XW_Q,\qquad K = XW_K,\qquad V = XW_V. $$
 - **Query (Q)** — "what am I looking for?"
 - **Key (K)** — "what do I offer?"
 - **Value (V)** — "what I'll hand over if you attend to me."
 
-A token's query is compared against **every** token's key to decide how much to take from
-each token's value.
+A token's query is matched against **every** token's key to decide how much of each token's
+value to take. (Q/K/V are three learned "views" of the same token — that's why the
+projections are separate, trainable matrices.)
 
-## 3. Scaled dot-product attention
+## 4. Scaled dot-product attention
 
-Compare with a **dot product** (Math X1 — similarity!), scale, turn into a distribution
-with **softmax** (Math X5), then take a weighted sum of the values:
-$$ \text{Attention}(Q,K,V) = \text{softmax}\!\Big(\tfrac{QK^\top}{\sqrt{d}}\Big)\,V. $$
+Three steps — **dot product → softmax → weighted sum**:
+$$ \text{Attention}(Q,K,V) = \text{softmax}\!\Big(\frac{QK^\top}{\sqrt{d_k}}\Big)\,V. $$
+1. **Scores** $QK^\top$ — an $n\times n$ matrix; entry $(i,j)$ is query $i$ · key $j$ = how
+   well token $i$ matches token $j$ (Math X1).
+2. **Scale & softmax** — divide by $\sqrt{d_k}$ (§6), then softmax **each row** (Math X5), so
+   every token's scores become a probability distribution over all tokens — its **attention
+   weights**.
+3. **Weighted sum** — multiply by $V$: token $i$'s output is the attention-weighted blend of
+   *every* token's value — a new, **context-aware** representation.
 
 <FLOW/>
 
-Row $i$ of the softmax is token $i$'s **attention weights** — how much it attends to each
-token. The output for token $i$ is that weighted blend of values: a new, **context-aware**
-representation of the token.
+## 5. A tiny worked example
 
-## 4. Why divide by √d
+Suppose token $i$'s query yields raw scores $[2,\,0,\,1]$ against three keys (take
+$d_k=1$, no scaling). Softmax → $[0.67,\,0.09,\,0.24]$. The output is
+$0.67\,v_1 + 0.09\,v_2 + 0.24\,v_3$ — mostly token 1's value, a dash of token 3's. Nudge the
+query to align with key 2 and the blend shifts toward $v_2$. That, per token and in parallel,
+is the whole mechanism — the Live tab shows the full $n\times n$ weight matrix.
 
-Dot products of $d$-dimensional vectors grow like $\sqrt{d}$. Left unscaled, large scores
-push softmax into its **saturated** corners (one weight ≈ 1, the rest ≈ 0, tiny gradients —
-the vanishing problem of ANN §6). Dividing by $\sqrt{d}$ keeps the scores in a sane range so
-learning stays healthy.
+## 6. Why divide by √d
 
-## 5. Self-attention, heads, and the Transformer
+Dot products of $d_k$-dimensional vectors grow like $\sqrt{d_k}$. Left unscaled, large scores
+shove softmax into its **saturated** corners (one weight ≈ 1, the rest ≈ 0) where its
+gradient is almost zero — the vanishing problem (ANN §6). Dividing by $\sqrt{d_k}$ keeps
+scores in a sane range so attention stays smooth and trainable.
+
+## 7. Self-attention & multi-head
 
 - **Self-attention** — Q, K, V all come from the *same* sequence, so every token attends to
-  the others (what the Live tab shows).
-- **Multi-head** — run several attentions in parallel ("heads"), each free to focus on a
-  different kind of relationship (syntax, coreference, …), then concatenate.
-- A **Transformer block** = multi-head self-attention **+** a per-token MLP, wrapped with
-  **residual connections** and **layer norm**. Stack many blocks → the backbone of GPT.
+  the others (what the Live tab shows). *(When they come from two sequences it's
+  cross-attention — e.g. translation.)*
+- **Multi-head** — split the $d$ dimensions into $h$ smaller **heads**, run attention in each
+  independently, then concatenate and project. Each head can specialize — one tracks local
+  context, another long-range coreference, another syntax — capturing several relationship
+  types at once.
 
-## 6. It's all things you already know
+## 8. Position has to be added back
 
-Attention introduces **no new math**: a **dot product** for similarity (X1), **softmax**
-for a distribution (X5), and a **weighted sum**. The genius is the *composition* — letting
-the data decide, at every layer, which tokens inform which.
+Attention is a weighted sum over a **set**, so on its own it has **no sense of order**
+("dog bites man" ≈ "man bites dog" to raw attention). Transformers therefore add a
+**positional encoding** to each token embedding — a fixed sinusoid or a learned
+per-position vector — telling the model *where* each token sits. (The Tiny GPT page uses
+learned position embeddings.)
 
-## 7. From here to an LLM
+## 9. The cost
 
-A **GPT** is a stack of these blocks that, given the tokens so far, outputs a **softmax over
-the vocabulary** for the *next* token — trained by cross-entropy (M2 / X5) on oceans of
-text. Everything in this lab leads here: neuron → MLP → backprop → attention → Transformer →
-LLM. *(Roadmap Tier 5.)*
+The score matrix is $n\times n$, so self-attention is **$O(n^2)$** in time and memory —
+quadratic in sequence length. That's why context windows are bounded and why lots of LLM
+research chases cheaper/longer attention. The upside: it's **one big matrix multiply**, so
+it parallelizes on GPUs — unlike an RNN's step-by-step loop, which is why Transformers
+train so much faster.
+
+## 10. It's all things you already know
+
+Attention adds **no new math**: a **dot product** for similarity (Math X1), **softmax** for
+a distribution (Math X5), a **weighted sum**, and learned projections (matrix multiplies,
+X1). The genius is the *composition* — at every layer the data itself decides which tokens
+inform which. Add a causal mask + an MLP into a **block**, repeat, cap with a next-token
+softmax head, and you have a **GPT** (Tiny GPT page). Everything in this lab leads here:
+neuron → MLP → backprop → attention → Transformer → LLM. *(Roadmap Tier 4–5.)*
 """
 
 _QUIZ = [

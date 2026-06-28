@@ -85,54 +85,100 @@ _MASK_SVG = '''<div style="text-align:center;margin:0.5rem 0"><svg viewBox="0 0 
 
 
 _THEORY = r"""
-## 1. From attention to a Transformer block
+## 1. The whole picture
 
-Attention (previous page) is the *mixer* that lets tokens share information. A **Transformer
-block** wraps it into a reusable unit:
+A GPT is one pipeline: **tokens → embeddings (+ positions) → N Transformer blocks → a
+softmax over the vocabulary**. Each block refines every token's vector by (a) letting it
+gather context with attention and (b) processing it with a small MLP. After $N$ blocks, each
+position's vector is used to predict the **next** token.
 
 <BLOCK/>
 
-Two ingredients beyond attention make deep stacks trainable:
-- **Residual connections** (the `+`): each sub-layer adds to its input rather than
-  replacing it, giving gradients a clean "highway" back through many layers (it's why the
-  vanishing-gradient problem of ANN §6 doesn't kill deep Transformers).
-- **LayerNorm**: re-centers/scales each token's vector so activations stay in a healthy
-  range.
+## 2. The Transformer block
 
-A block = **self-attention → add & norm → MLP → add & norm**. Stack $N$ of them and you
-have the body of a GPT.
+Attention (previous page) is the *mixer* — it moves information **between** tokens. The block
+pairs it with a per-token **MLP** that does the *processing* on each token independently,
+and wraps both in two stabilizers:
 
-## 2. Causal masking — only look back
+- **Residual connections** — each sub-layer computes $x \leftarrow x + f(x)$, **adding** to
+  its input instead of replacing it. That gives gradients a clean "highway" straight back
+  through many layers, so the vanishing-gradient problem (Backprop §10, ANN §6) doesn't kill
+  deep stacks — and it lets each layer learn a small *refinement* rather than a whole new
+  representation.
+- **LayerNorm** — re-centers and re-scales each token's vector (to mean 0 / unit variance,
+  then a learned scale & shift) so activations stay in a healthy range as depth grows.
+
+So a block is **`x = x + attn(norm(x))`** then **`x = x + mlp(norm(x))`**. Stack $N$ of them
+→ the body of a GPT. (Roughly half the parameters live in those MLPs.)
+
+## 3. Causal masking — only look back
 
 A language model predicts the **next** token, so when processing position $i$ it must not
-peek at the future. **Causal (masked) self-attention** zeroes out attention to any position
-$j > i$ — a lower-triangular mask:
+peek at the future. **Causal (masked) self-attention** sets the scores for any position
+$j>i$ to $-\infty$ *before* the softmax, so they get **0 weight** — a lower-triangular
+pattern:
 
 <MASK/>
 
-## 3. The output head — next-token softmax
+This mask is the *only* change from the Attention page's self-attention — and it's exactly
+what lets the model train on **every position at once** (§5) while never cheating.
 
-The final token vectors go through a **linear layer → softmax over the vocabulary**, giving
-$P(\text{next token}\mid\text{context})$. Training is a single objective: **maximize the
-probability of the actual next token** = minimize **cross-entropy** (M2 / X5), over a huge
-corpus. That's the *entire* learning signal — predict the next token, billions of times.
+## 4. The output head — next-token softmax
 
-## 4. Generation = sampling, autoregressively
+After the last block (and a final LayerNorm), each token's vector passes through a **linear
+layer → softmax over the whole vocabulary**, giving $P(\text{next token}\mid\text{everything
+so far})$ at that position. The linear layer has **one row per vocabulary item**; the dot
+product of a token's vector with each row scores how likely that item comes next (Math X1,
+once more).
 
-To produce text: feed the prompt, **sample** the next token from the softmax (a
-**temperature** controls randomness — low = safe/repetitive, high = creative/chaotic; it's
-the same softmax temperature from the Attention page, X5), append it, and repeat. The Live
-tab does exactly this with a tiny **character-level** model.
+## 5. Training — next-token prediction
 
-## 5. That's a GPT
+One objective: **make the true next token likely** — minimize the **cross-entropy** between
+the predicted distribution and the actual next token (M2 / X5), averaged over the corpus.
+Two things make it scale:
 
-Stack masked-attention blocks, scale the data and parameters to billions, train on
-next-token prediction — and you have a GPT. The whole lab built to here:
-**neuron → MLP → backprop → optimizers → attention → Transformer → language model.**
+- **Shifted targets (teacher forcing)** — the target at position $i$ is just the input token
+  at position $i{+}1$. No human labels: the text **is its own supervision**
+  (*self-supervised*).
+- **All positions in parallel** — thanks to the causal mask, one forward pass yields a
+  prediction at *every* position, and the loss is averaged over all of them.
+
+That's the *entire* learning signal — predict the next token, billions of times — yet from
+it the model absorbs grammar, facts, style, and reasoning patterns.
+
+## 6. Generation = autoregressive sampling
+
+To produce text: feed the prompt, read the next-token distribution at the **last** position,
+**pick** a token, append it, and repeat — feeding the model its own output
+(*autoregressive*). How you pick matters:
+
+- **Greedy** — always the most likely token: safe but repetitive.
+- **Temperature** $T$ — divide the logits by $T$ before softmax: $T<1$ sharpens (safer),
+  $T>1$ flattens (more random/creative) — the same knob as the Attention page (X5).
+- **Top-k / top-p** — sample only from the $k$ most likely tokens (or the smallest set with
+  probability $\ge p$), cutting off the long tail of nonsense.
+
+The Live tab uses temperature plus a small top-k.
+
+## 7. Why it scales — and the honest caveat
+
+Make the blocks wider, stack more, and train on more text, and this same recipe keeps
+improving in a strikingly predictable way (**scaling laws**), with new capabilities
+appearing along the way. A production LLM differs from this page only in **data, parameter
+count, and compute** — plus engineering (a better tokenizer, normalization and positional
+schemes, and a KV-cache for fast generation).
 
 > The Live demo is a fixed-window neural LM standing in for the stacked-attention version,
-> but the **output head (next-token softmax)**, the **training objective
-> (cross-entropy)**, and **generation (temperature sampling)** are exactly a GPT's.
+> but the **output head (next-token softmax)**, the **objective (cross-entropy)**, and
+> **generation (temperature sampling)** are exactly a GPT's. For the *real* stacked-attention
+> model trained by backprop, run experiment **e21 (nanoGPT)**.
+
+## 8. That's a GPT
+
+Stack masked multi-head self-attention blocks, add token + position embeddings and a
+next-token head, train by cross-entropy, generate by sampling. The whole lab built to here:
+**neuron → MLP → backprop → optimizers → attention → Transformer → a language model.**
+*(Roadmap Tier 5; experiment e21 trains the real thing.)*
 """
 
 _QUIZ = [
