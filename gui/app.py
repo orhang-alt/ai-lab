@@ -34,6 +34,7 @@ ANN_PAGES = [
     st.Page("views/optimizers.py", title="Optimizers", icon=":material/trending_down:"),
     st.Page("views/neurons_compute.py", title="Neurons → computer", icon=":material/calculate:"),
     st.Page("views/the_chain.py", title="The big picture", icon=":material/route:"),
+    st.Page("views/attention.py", title="Attention (LLMs)", icon=":material/auto_awesome:"),
     st.Page("views/experiments.py", title="Experiments", icon=":material/science:"),
     st.Page("views/infobase.py", title="Infobase", icon=":material/menu_book:"),
     st.Page("views/tests.py", title="Tests", icon=":material/check_circle:"),

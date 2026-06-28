@@ -1,0 +1,229 @@
+"""Attention — the engine of Transformers & LLMs (ANN module).
+
+Self-attention lets each token gather information from every other token by **dot-product
+similarity → softmax → weighted sum** — exactly the dot product (Math X1) and softmax
+(Math X5) you already know, composed. The Live tab runs scaled dot-product self-attention
+on a tiny sentence with hand-set embeddings, so the attention pattern is interpretable.
+"""
+
+import pathlib
+import sys
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))   # gui/
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import streamlit as st
+
+import lessons
+
+TOKENS = ["cat", "dog", "sat", "ran", "."]
+# Hand-set embeddings so the pattern is readable: cat~dog (animals), sat~ran (verbs),
+# "." stands alone. In a real model these are *learned*.
+E = np.array([
+    [1.0, 0.2, 0.0],   # cat
+    [0.9, 0.3, 0.0],   # dog
+    [0.1, 1.0, 0.2],   # sat
+    [0.0, 0.9, 0.3],   # ran
+    [0.2, 0.2, 1.0],   # .
+])
+D = E.shape[1]
+
+
+def _softmax(z):
+    z = z - z.max(axis=-1, keepdims=True)
+    e = np.exp(z)
+    return e / e.sum(axis=-1, keepdims=True)
+
+
+def _attention(temp=1.0):
+    scores = (E @ E.T) / np.sqrt(D)
+    W = _softmax(scores / temp)
+    out = W @ E
+    return scores, W, out
+
+
+_FLOW_SVG = '''<div style="text-align:center;margin:0.5rem 0"><svg viewBox="0 0 700 195" style="width:100%;max-width:700px;height:auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Scaled dot-product attention: queries and keys form a score matrix Q times K-transpose, divided by the square root of d, softmaxed into attention weights, then multiplied by the values V to give the output context vectors."><defs><marker id="atf" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 z" fill="#9C9B95"/></marker></defs><rect x="1" y="1" width="698" height="193" rx="14" fill="#FAFAF7" stroke="#E2E2DA"/><g fill="#E6F1FB" stroke="#5B8FC2" stroke-width="1.5"><rect x="22" y="36" width="64" height="30" rx="6"/><rect x="22" y="82" width="64" height="30" rx="6"/><rect x="22" y="146" width="64" height="30" rx="6"/></g><g font-family="sans-serif" font-size="13" text-anchor="middle" fill="#0C447C"><text x="54" y="56">Q</text><text x="54" y="102">K</text><text x="54" y="166">V</text></g><g font-family="sans-serif" font-size="9" text-anchor="middle" fill="#6B6A66"><text x="54" y="76">query</text><text x="54" y="122">key</text><text x="54" y="186">value</text></g><g fill="#FBEAD6" stroke="#9A6A2A" stroke-width="1.5"><rect x="150" y="70" width="104" height="40" rx="8"/><rect x="284" y="70" width="74" height="40" rx="8"/></g><rect x="388" y="70" width="104" height="40" rx="8" fill="#FBEAF0" stroke="#C0507A" stroke-width="1.5"/><rect x="522" y="70" width="128" height="40" rx="8" fill="#D7EFE5" stroke="#1D9E75" stroke-width="1.5"/><g font-family="sans-serif" font-size="12" text-anchor="middle" fill="#33312E"><text x="202" y="94">Q·Kᵀ scores</text><text x="321" y="94">÷ √d</text><text x="440" y="94" fill="#8A2351">softmax</text><text x="586" y="89">weighted</text><text x="586" y="103">sum × V</text></g><g stroke="#9C9B95" stroke-width="1.7" fill="none"><line x1="88" y1="52" x2="148" y2="82" marker-end="url(#atf)"/><line x1="88" y1="96" x2="148" y2="96" marker-end="url(#atf)"/><line x1="254" y1="90" x2="282" y2="90" marker-end="url(#atf)"/><line x1="358" y1="90" x2="386" y2="90" marker-end="url(#atf)"/><line x1="492" y1="90" x2="520" y2="90" marker-end="url(#atf)"/><line x1="88" y1="160" x2="560" y2="112" marker-end="url(#atf)"/><line x1="650" y1="90" x2="688" y2="90" marker-end="url(#atf)"/></g><text x="440" y="128" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#8A2351">attention weights</text><text x="694" y="86" text-anchor="end" font-family="sans-serif" font-size="10" fill="#0E5E45">context</text></svg></div>'''
+
+
+_THEORY = r"""
+## 1. Why attention
+
+An MLP mixes its inputs with **fixed** weights, and an RNN squeezes a whole sequence
+through one small state. **Attention** lets each token **dynamically pull information from
+any other token** — near or far — choosing *what to look at* based on content. That single
+idea is what made **Transformers**, and therefore modern **LLMs**, possible.
+
+## 2. Query, Key, Value
+
+For every token the model produces three vectors (learned linear projections of its
+embedding):
+- **Query (Q)** — "what am I looking for?"
+- **Key (K)** — "what do I offer?"
+- **Value (V)** — "what I'll hand over if you attend to me."
+
+A token's query is compared against **every** token's key to decide how much to take from
+each token's value.
+
+## 3. Scaled dot-product attention
+
+Compare with a **dot product** (Math X1 — similarity!), scale, turn into a distribution
+with **softmax** (Math X5), then take a weighted sum of the values:
+$$ \text{Attention}(Q,K,V) = \text{softmax}\!\Big(\tfrac{QK^\top}{\sqrt{d}}\Big)\,V. $$
+
+<FLOW/>
+
+Row $i$ of the softmax is token $i$'s **attention weights** — how much it attends to each
+token. The output for token $i$ is that weighted blend of values: a new, **context-aware**
+representation of the token.
+
+## 4. Why divide by √d
+
+Dot products of $d$-dimensional vectors grow like $\sqrt{d}$. Left unscaled, large scores
+push softmax into its **saturated** corners (one weight ≈ 1, the rest ≈ 0, tiny gradients —
+the vanishing problem of ANN §6). Dividing by $\sqrt{d}$ keeps the scores in a sane range so
+learning stays healthy.
+
+## 5. Self-attention, heads, and the Transformer
+
+- **Self-attention** — Q, K, V all come from the *same* sequence, so every token attends to
+  the others (what the Live tab shows).
+- **Multi-head** — run several attentions in parallel ("heads"), each free to focus on a
+  different kind of relationship (syntax, coreference, …), then concatenate.
+- A **Transformer block** = multi-head self-attention **+** a per-token MLP, wrapped with
+  **residual connections** and **layer norm**. Stack many blocks → the backbone of GPT.
+
+## 6. It's all things you already know
+
+Attention introduces **no new math**: a **dot product** for similarity (X1), **softmax**
+for a distribution (X5), and a **weighted sum**. The genius is the *composition* — letting
+the data decide, at every layer, which tokens inform which.
+
+## 7. From here to an LLM
+
+A **GPT** is a stack of these blocks that, given the tokens so far, outputs a **softmax over
+the vocabulary** for the *next* token — trained by cross-entropy (M2 / X5) on oceans of
+text. Everything in this lab leads here: neuron → MLP → backprop → attention → Transformer →
+LLM. *(Roadmap Tier 5.)*
+"""
+
+_QUIZ = [
+    lessons.Question(
+        "In attention, what do the Query and Key produce together?",
+        ["the final output directly", "a similarity score (dot product) saying how much one token should attend to another",
+         "the loss", "the embedding"], 1,
+        "score(i,j) = qᵢ·kⱼ/√d — a dot-product similarity; softmax turns a token's scores into attention weights."),
+    lessons.Question(
+        "After softmax, the output for a token is…",
+        ["the largest value vector", "a weighted sum (blend) of all tokens' Value vectors",
+         "the query vector unchanged", "a random token"], 1,
+        "output_i = Σ_j weight(i,j)·v_j — a context-aware blend of values."),
+    lessons.Question(
+        "Why divide the scores by √d?",
+        ["to save memory", "to keep dot products from getting huge and saturating softmax (tiny gradients)",
+         "to make them integers", "it's optional and cosmetic"], 1,
+        "Scores grow like √d; scaling keeps softmax out of its saturated corners so gradients stay useful."),
+    lessons.Question(
+        "Attention is built from which familiar pieces?",
+        ["convolution + pooling", "dot product (similarity, X1) + softmax (distribution, X5) + weighted sum",
+         "eigenvectors + SVD", "k-means + PCA"], 1,
+        "No new math — just those three composed so the data chooses what to attend to."),
+]
+
+_TASKS = r"""
+### In the Live tab
+1. Pick **cat** as the query — which tokens get the most weight, and why? Do the same for
+   **sat**. (Animals attend to animals, verbs to verbs.)
+2. Lower the **temperature** toward 0 — the attention sharpens toward one token (hard
+   selection); raise it — attention flattens toward uniform. Relate this to softmax (X5).
+3. Read the **heatmap**: which 2×2 blocks light up, and what relationship do they encode?
+
+### Pencil & paper
+4. With $q=(1,0)$ and keys $k_1=(1,0),\,k_2=(0,1),\,k_3=(-1,0)$, rank the attention weights
+   before softmax. Which value gets blended in most?
+5. Explain in one sentence why attention handles long-range dependencies better than an RNN.
+
+### Bridge
+6. Connect: dot product = **Math X1**, softmax = **Math X5**, the next-token loss =
+   **M2 / X5** cross-entropy. Attention is these composed.
+"""
+
+_REFS = r"""
+- Vaswani et al. (2017) — **"Attention Is All You Need"** (the Transformer paper).
+- Jay Alammar — **The Illustrated Transformer** (the best visual walk-through).
+- Karpathy — **"Let's build GPT"** / nanoGPT (attention in code, from scratch).
+- 3Blue1Brown — *Attention in transformers* (visual intuition).
+- In this lab: Math **X1** (dot product), Math **X5** (softmax / cross-entropy), the
+  **MLP** + **Backprop** pages, and roadmap **Tier 3–5**.
+"""
+
+
+st.title("Attention — the engine of Transformers & LLMs")
+st.caption("Each token gathers info from the others by dot-product similarity → softmax → "
+           "weighted sum. Self-attention runs live below on a tiny sentence.")
+
+tab_live, tab_theory, tab_quiz, tab_tasks, tab_ref = st.tabs(
+    ["🔎 Live attention", "📖 Theory", "❓ Self-check", "🛠 Tasks", "📚 References"]
+)
+
+with tab_live:
+    st.markdown("Self-attention over the tokens **" + " · ".join(f"`{t}`" for t in TOKENS) +
+                "** (hand-set embeddings: *cat≈dog*, *sat≈ran*, *.* alone — in a real model "
+                "these are learned). Q = K = V = the embeddings here.")
+    cc = st.columns(2)
+    temp = cc[0].slider("temperature (softmax sharpness)", 0.2, 2.0, 1.0, 0.1, key="att_T",
+                        help="lower = sharper / harder attention, higher = flatter")
+    qi = cc[1].selectbox("inspect query token", TOKENS, index=0, key="att_q")
+
+    scores, W, out = _attention(temp)
+    qidx = TOKENS.index(qi)
+
+    left, right = st.columns(2)
+    with left:
+        st.caption("Attention weights — row = query, column = attended token")
+        fig, ax = plt.subplots(figsize=(4.2, 3.8))
+        im = ax.imshow(W, cmap="Blues", vmin=0, vmax=1)
+        ax.set_xticks(range(len(TOKENS))); ax.set_xticklabels(TOKENS)
+        ax.set_yticks(range(len(TOKENS))); ax.set_yticklabels(TOKENS)
+        ax.set_xlabel("attends to →"); ax.set_ylabel("query token")
+        for i in range(len(TOKENS)):
+            for j in range(len(TOKENS)):
+                ax.text(j, i, f"{W[i, j]:.2f}", ha="center", va="center",
+                        color="white" if W[i, j] > 0.5 else "#333", fontsize=8)
+        st.pyplot(fig, width="stretch")
+    with right:
+        st.caption(f"How **{qi}** distributes its attention")
+        st.bar_chart(pd.DataFrame({"weight": W[qidx]}, index=TOKENS), height=300)
+
+    df = pd.DataFrame({
+        "token": TOKENS,
+        "q·k (raw)": np.round(E[qidx] @ E.T, 2),
+        "scaled ÷√d": np.round((E[qidx] @ E.T) / np.sqrt(D), 2),
+        "attention": np.round(W[qidx], 3),
+    })
+    st.dataframe(df, hide_index=True, width="content")
+    top = TOKENS[int(np.argmax(W[qidx]))]
+    st.success(f"**{qi}** attends most to **{top}** "
+               f"({W[qidx].max():.0%}). Its output vector is the attention-weighted blend of "
+               "all the Value vectors — a context-aware version of the token.",
+               icon=":material/center_focus_strong:")
+    st.info("Same three pieces you already know: **dot product** (Math X1) for similarity, "
+            "**softmax** (Math X5) for the weights, then a **weighted sum**.",
+            icon=":material/bolt:")
+
+with tab_theory:
+    st.markdown(_THEORY.replace("<FLOW/>", _FLOW_SVG), unsafe_allow_html=True)
+
+with tab_quiz:
+    st.subheader("Self-check")
+    st.caption("Instant feedback, no grading.")
+    lessons.render_quiz(_QUIZ, prefix="attention")
+
+with tab_tasks:
+    st.subheader("Tasks")
+    st.markdown(_TASKS)
+
+with tab_ref:
+    st.subheader("Reading & references")
+    st.markdown(_REFS)
