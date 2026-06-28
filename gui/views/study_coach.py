@@ -57,7 +57,12 @@ with tab_questions:
         "Tier 1": lab.LAB_ROOT / "learning/questions/tier1_backprop.md",
         "Tier 2": lab.LAB_ROOT / "learning/questions/tier2_training.md",
     }
-    choice = st.segmented_control("Question set", list(qfiles), default="Tier 2")
+    choice = st.segmented_control(
+        "Question set",
+        list(qfiles),
+        default="Tier 2",
+        key="study_coach_question_set",
+    ) or "Tier 2"
     st.markdown(lab.read(qfiles[choice]))
 
 with tab_checks:
@@ -66,16 +71,21 @@ with tab_checks:
         "Tier 1": lab.LAB_ROOT / "learning/self_checks/tier1_self_check.md",
         "Tier 2": lab.LAB_ROOT / "learning/self_checks/tier2_self_check.md",
     }
-    choice = st.segmented_control("Self-check", list(cfiles), default="Tier 2")
+    choice = st.segmented_control(
+        "Self-check",
+        list(cfiles),
+        default="Tier 2",
+        key="study_coach_self_check",
+    ) or "Tier 2"
     st.markdown(lab.read(cfiles[choice]))
 
 with tab_derivations:
     derivations = sorted((lab.LAB_ROOT / "infobase/04_derivations").glob("*.md"))
     labels = [p.stem.replace("-", " ") for p in derivations]
-    selected = st.selectbox("Derivation", labels, index=0)
+    selected = st.selectbox("Derivation", labels, index=0, key="study_coach_derivation")
+    selected = selected or labels[0]
     path = derivations[labels.index(selected)]
     st.markdown(lab.read(path))
 
 with tab_template:
     st.markdown(lab.read(lab.LAB_ROOT / "learning/templates/checkpoint.md"))
-

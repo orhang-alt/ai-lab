@@ -73,8 +73,7 @@ def inject_theme() -> None:
 
         [data-testid="stSidebar"] [data-testid="stSegmentedControl"] button[aria-pressed="true"],
         [data-testid="stSidebar"] [data-testid="stSegmentedControl"] button[aria-checked="true"],
-        [data-testid="stSidebar"] [data-testid="stSegmentedControl"] button[data-selected="true"],
-        [data-testid="stSidebar"] [data-testid="stSegmentedControl"] label:has(input:checked) div {
+        [data-testid="stSidebar"] [data-testid="stSegmentedControl"] button[data-selected="true"] {
             background: #2563eb !important;
             border-color: #2563eb !important;
             color: #ffffff !important;

@@ -116,8 +116,9 @@ include_heavy = controls[0].checkbox(
     "Include heavy training demos",
     value=False,
     help="Runs slower experiments such as e21 nanoGPT. Leave off for a quick dashboard scan.",
+    key="dashboard_include_heavy",
 )
-if controls[1].button("Re-scan", icon=":material/refresh:"):
+if controls[1].button("Re-scan", icon=":material/refresh:", key="dashboard_rescan"):
     scan.clear()
 
 data = scan(include_heavy)
