@@ -223,6 +223,10 @@ with tab_live:
     st.info("One objective — next-token prediction via softmax + cross-entropy — and "
             "generation is just sampling that softmax, token by token. Scale this up and "
             "it's a GPT.", icon=":material/smart_toy:")
+    st.caption("⚡ The **real, GPU-trained** version is experiment **e21** — a PyTorch "
+               "Transformer (causal multi-head attention + AdamW) at "
+               "`experiments/tier4_attention/e21_nanogpt`. Run it from the **Experiments** "
+               "page or the CLI (`--download --iters 3000` for Shakespeare).")
 
 with tab_theory:
     st.markdown(_THEORY.replace("<BLOCK/>", _BLOCK_SVG).replace("<MASK/>", _MASK_SVG),

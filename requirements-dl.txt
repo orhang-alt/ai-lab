@@ -1,0 +1,9 @@
+# Deep-learning extras — for the PyTorch experiments (e.g. tier4 e21 nanoGPT).
+# Kept OUT of the main requirements.txt so the Streamlit Cloud deploy stays light
+# (torch is large and the GUI doesn't need it).
+#
+#   pip install -r requirements-dl.txt
+#
+# torch 2.12 has Python 3.14 wheels (incl. Apple-Silicon MPS). If a wheel ever lags your
+# Python, make a 3.12 venv:  python3.12 -m venv .venv-dl && source .venv-dl/bin/activate
+torch>=2.2
