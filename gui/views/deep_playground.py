@@ -68,31 +68,67 @@ def fit(name, arch_key, activation, noise, seed):
 _THEORY = r"""
 ## 1. Beyond XOR — curved boundaries
 
-XOR (MLP page) is the smallest non-linear problem. The same machine — a hidden layer plus
-a nonlinearity — scales straight up to **moons, rings, and spirals**: with enough hidden
-units it can bend its boundary into *any* shape (the universal-approximation idea, MLP §2).
-This page uses scikit-learn's fast, vectorized MLP so you can train on hundreds of points
-in real time.
+XOR (MLP page) is the smallest non-linear problem — four points, two hidden units. The
+*same* machine — a hidden layer plus a nonlinearity — scales straight up to **moons, rings,
+and spirals**. With enough hidden capacity an MLP can bend its boundary into essentially
+**any** shape (universal approximation, MLP §5). This page swaps the lab's scalar engine for
+scikit-learn's **fast, vectorized MLP**, so you can train on hundreds of points in real time
+and *watch* the boundary form.
 
-## 2. Width & depth = capacity
+## 2. How hidden units carve up space
 
-More hidden **units** (width) and more **layers** (depth) give the network more "folds" to
-work with, so it can fit more intricate boundaries — a circle, then a double spiral.
-But capacity cuts both ways: too much and the model starts tracing the **noise** instead of
-the signal (overfitting, M0). The next page (**Regularization**) is about taming that.
+Picture one **ReLU** hidden unit: it's a line — "off" (0) on one side, rising linearly on
+the other — i.e. a **fold** in the input space. The output neuron **adds up** many such
+folds. A handful makes a polygon; dozens approximate a smooth curve; arranged right they
+enclose a ring or trace a spiral. So **more units = more folds = more intricate regions** —
+which is exactly what you see when you switch `1×8 → 2×16`.
 
-## 3. Activation shapes the boundary
+## 3. Depth vs. width
 
-- **ReLU** — piecewise-linear, so boundaries look **polygonal** (made of straight
-  segments); cheap and the deep-learning default.
-- **tanh / logistic** — smooth, so boundaries are **curvy**; can saturate in deep stacks
-  (ANN §6).
+- **Width** (units per layer) adds folds at one level — more pieces in the boundary.
+- **Depth** (more layers) lets the network **compose** features: layer 1's folds become the
+  *inputs* to layer 2, which folds *those*. So depth builds shape **hierarchically** and can
+  represent some boundaries with far fewer total units than one giant wide layer. (Vision:
+  pixels → edges → textures → parts → objects.)
 
-## 4. Same recipe underneath
+A spiral is the good stress test here — it usually needs real width *or* a second layer.
 
-It's still forward → loss → backward → optimizer step (Backprop + Optimizers pages), just
-on more data and with a tuned solver. The lesson: **depth + nonlinearity learns features**
-that make even tangled classes separable. *(Lab tie-ins: MLP, M0, M7.)*
+## 4. Activation shapes the boundary
+
+- **ReLU** — piecewise-linear, so boundaries look **polygonal** (straight segments); cheap,
+  non-saturating, the deep-learning default.
+- **tanh / logistic** — smooth, so boundaries look **curvy**; but they **saturate** and can
+  vanish gradients in deep stacks (ANN §6).
+
+Toggle them on the same data — the boundary's *texture* changes even when accuracy is alike.
+
+## 5. Boundary vs. regions vs. confidence
+
+The black line is where the model is 50/50 ($p=0.5$); the **shading** is the predicted
+probability — vivid where it's confident, washed-out near the boundary and in regions with
+no data. Far from the points the prediction is essentially a guess: a model only really
+"knows" where it had examples.
+
+## 6. Data, noise & overfitting
+
+Capacity cuts both ways. Turn the **noise** up and a big network can start **tracing the
+noise** — a wiggly boundary that nails the training dots but misreads new ones. That's
+**overfitting**: training accuracy ≫ **test** accuracy (the held-out ▲ points, M0). The page
+flags it when the gap grows; the cure is **regularization** (next page) — or more data.
+
+## 7. Why we standardize first
+
+The pipeline runs **`StandardScaler`** before the MLP, because neural nets train far better
+when inputs are centered and comparably scaled (same reason as M7 / Math X-scaling). Without
+it, a feature with a larger numeric range dominates and training is slower and less stable.
+
+## 8. Same recipe underneath
+
+Nothing new is happening: it's still **forward → loss → backward (backprop) → optimizer
+step**, repeated, just on more data with a tuned solver. The takeaway: **depth + a
+nonlinearity learns features** that make even tangled classes separable by the final layer —
+the core trick that, scaled to images and text, *is* modern deep learning. *(Lab tie-ins:
+MLP, Backprop, Optimizers, M0, M7.)*
 """
 
 _QUIZ = [

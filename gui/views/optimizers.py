@@ -49,44 +49,94 @@ def run(name: str, lr: float, steps: int, A: float):
 
 
 _THEORY = r"""
-## 1. The problem — ravines
+## 1. What an optimizer does
 
-Real loss surfaces are **ill-conditioned**: much steeper in some directions than others
-(Math **X4 §10**). On such a surface the gradient doesn't point at the minimum — it points
-mostly *across* a long narrow valley. Plain gradient descent then **overshoots the steep
-direction and crawls along the flat one**, zig-zagging slowly. The demo's surface
-$f(x,y)=A\,x^2+y^2$ is exactly this: steep in $x$ (large $A$), flat in $y$.
+Backprop hands you the gradient $\nabla L$ — the uphill direction for every weight. An
+**optimizer** decides **how to step** with those gradients to drive the loss down. The base
+move is gradient descent, $w \leftarrow w - \eta\,\nabla L$, but raw steps struggle on real
+loss surfaces, so smarter rules (momentum, Adam) *shape* the step. This page races three on
+the same surface.
 
-## 2. SGD — the baseline
+## 2. Batch, stochastic & mini-batch
+
+You can estimate the gradient on:
+- the **whole dataset** (*batch* GD) — accurate but one step needs all the data → slow;
+- **one example** (*stochastic* GD / SGD) — cheap and noisy, and the noise can help jump out
+  of bad spots;
+- a **mini-batch** of ~32–512 (the practical default) — best speed/accuracy trade-off and
+  GPU-friendly.
+
+"SGD" in practice means **mini-batch** SGD. That gradient noise is exactly why a real loss
+curve is **jagged**, not a smooth glide.
+
+## 3. The learning rate η — the #1 knob
+
+$\eta$ scales every step. **Too large** → you overshoot and the loss **diverges** (flies
+off); **too small** → it crawls and may never arrive. There's a stability ceiling set by the
+surface's curvature (for a quadratic, roughly $\eta < 2/\text{(largest curvature)}$). It is
+the single most impactful thing you tune — crank it in the demo to watch SGD blow up.
+
+## 4. The hard case — ravines (ill-conditioning)
+
+Real loss surfaces are **ill-conditioned**: far steeper in some directions than others (Math
+**X4 §10**). Then $-\nabla L$ doesn't point at the minimum — it points mostly **across** a
+long narrow valley. Plain GD **overshoots the steep direction and crawls the flat one**,
+zig-zagging. The demo surface $f(x,y)=A x^2+y^2$ is exactly that: steep in $x$ (large $A$),
+flat in $y$.
+
+## 5. SGD — the baseline
 
 $$ w \leftarrow w - \eta\,\nabla L. $$
-Simple and memory-light. It works, but in a ravine it bounces across the steep axis while
-inching down the flat one, and it can stall on **plateaus and saddle points**.
+Simple, memory-light, and with a good schedule still a top performer. Weaknesses: it
+zig-zags in ravines and can **stall on plateaus and saddle points** — flat regions where
+$\nabla L\approx0$, which are everywhere in high-dimensional nets.
 
-## 3. Momentum — a heavy ball
+## 6. Momentum — a heavy ball
 
-Accumulate a **velocity** that averages recent gradients, and step with *that*:
+Keep a **velocity** that exponentially averages recent gradients, and step with *that*:
 $$ v \leftarrow \mu\,v + \nabla L,\qquad w \leftarrow w - \eta\,v. $$
-Consistent directions (down the valley) **build up speed**, while oscillating directions
-(across the valley) **cancel out** — so momentum rolls through ravines far faster and
-smooths the zig-zag. Typical $\mu \approx 0.9$.
+Consistent directions (down the valley) **accumulate speed**; oscillating directions (across
+the valley) **cancel**. So momentum rolls through ravines and coasts across plateaus — a
+heavy ball with inertia. Typical $\mu=0.9$ (≈ averaging the last ~10 gradients);
+**Nesterov** is a slightly look-ahead variant.
 
-## 4. Adam — adaptive per-parameter rates
+## 7. RMSProp — per-parameter scaling
 
-Adam keeps a running mean $m$ (like momentum) **and** a running mean of squared gradients
-$v$ (the gradient's size per parameter), then divides them:
-$$ m \leftarrow \beta_1 m + (1-\beta_1)\nabla L,\quad v \leftarrow \beta_2 v + (1-\beta_2)(\nabla L)^2,\quad w \leftarrow w - \eta\,\frac{\hat m}{\sqrt{\hat v}+\varepsilon}. $$
-Dividing by $\sqrt{\hat v}$ gives **each parameter its own effective step size** — big steps
-where gradients are small (the flat $y$), small steps where they're large (the steep $x$).
-That's why Adam takes a near-direct route with little tuning. It's the **robust default**,
-especially for transformers/LLMs.
+Different weights can have wildly different gradient sizes. **RMSProp** divides each weight's
+step by a running root-mean-square of *its own* recent gradients:
+$$ s \leftarrow \rho\,s + (1-\rho)(\nabla L)^2,\qquad w \leftarrow w - \eta\,\frac{\nabla L}{\sqrt{s}+\varepsilon}. $$
+A parameter with tiny gradients (the flat direction) still takes meaningful steps; one with
+huge gradients (the steep direction) is reined in — directly attacking the ravine problem.
 
-## 5. Which to use
+## 8. Adam = momentum + RMSProp
 
-- **Adam** — the safe default; fast, forgiving about the learning rate.
-- **SGD + momentum** — often **generalizes best** for large vision nets (with a schedule).
-- Whatever you pick, the **learning rate is still the #1 knob** (X4 §3) — too big diverges,
-  too small crawls. Watch both happen in the demo. *(Lab: `core/optim.py`.)*
+Adam combines both: a momentum-like mean $m$ **and** an RMSProp-like variance $v$, each an
+exponential average, plus a **bias correction** (they start at 0, so early estimates are
+scaled up):
+$$ m\leftarrow\beta_1 m+(1-\beta_1)\nabla L,\qquad v\leftarrow\beta_2 v+(1-\beta_2)(\nabla L)^2, $$
+$$ \hat m=\frac{m}{1-\beta_1^{\,t}},\quad \hat v=\frac{v}{1-\beta_2^{\,t}},\qquad w\leftarrow w-\eta\,\frac{\hat m}{\sqrt{\hat v}+\varepsilon}. $$
+Dividing $\hat m$ by $\sqrt{\hat v}$ gives **each parameter its own effective step size** —
+big where gradients are small, small where large — so Adam takes a near-direct route with
+little tuning. Defaults $\beta_1=0.9,\ \beta_2=0.999,\ \eta\approx10^{-3}$. The **robust
+default**, especially for transformers/LLMs. **AdamW** (decoupled weight decay) is the
+common modern variant — it's what the e21 nanoGPT uses.
+
+## 9. Schedules & weight decay
+
+Two add-ons that pair with any optimizer:
+- **Learning-rate schedule** — start higher, then **decay** (step / cosine), often after a
+  short **warmup**: big steps early to make progress, small steps late to settle.
+- **Weight decay** — gently shrink weights every step (L2 regularization) for better
+  generalization (the **Regularization** page).
+
+## 10. Which to use
+
+- **Adam / AdamW** — the safe default; fast and forgiving. Start here.
+- **SGD + momentum (+ a schedule)** — often **generalizes best** for large vision nets, at
+  the cost of more tuning.
+- Whatever you pick, **the learning rate is still the #1 knob** — in the demo, watch SGD
+  diverge while Adam survives at the *same* $\eta$. *(Lab: `core/optim.py` implements SGD,
+  Momentum and Adam.)*
 """
 
 _QUIZ = [

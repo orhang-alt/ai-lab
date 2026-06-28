@@ -39,64 +39,121 @@ _CHAIN_SVG = '''<div style="text-align:center;margin:0.6rem 0"><svg viewBox="0 0
 
 
 _THEORY = r"""
-## 1. The goal — a gradient for every weight
+## 1. The problem backprop solves — credit assignment
 
-Training is gradient descent (Math X4): repeatedly nudge each weight **against** its
-gradient $\partial L/\partial w$. A real network has *millions* of weights, so the only
-question that matters is: **how do we get $\partial L/\partial w$ for all of them, cheaply?**
-The answer is **backpropagation** — and it computes *every* gradient in a single backward
-sweep.
+A network makes a prediction; the loss says how wrong it was. To improve, **every weight
+must move in the right direction** — but a weight buried deep in the network influences the
+loss only *through everything that comes after it*. So: **how much is each weight to blame
+for the error, and which way should it move?** That's the **credit-assignment problem**, and
+**backpropagation** is the answer — it computes the gradient $\partial L/\partial w$ for
+*every* weight in one backward sweep. Gradient descent (Math X4) then takes the step. No
+backprop, no training.
 
-## 2. The forward pass
+## 2. What a gradient actually means
 
-First run the network normally, left to right, **caching each intermediate value**. For one
-sigmoid neuron with a squared-error loss:
+$\partial L/\partial w$ is just the **slope of the loss with respect to that one weight**:
+
+> nudge $w$ up by a tiny $\varepsilon$, and the loss changes by about $(\partial L/\partial w)\,\varepsilon$.
+
+Its **sign** says which way to move ($w$ should go *opposite* the gradient to *lower* the
+loss); its **magnitude** says how sensitive the loss is to that weight (big = important
+knob, near-zero = barely matters). The whole job is to get all these slopes — cheaply.
+
+## 3. Forward pass — compute and remember
+
+Run the network normally, left → right, **caching each intermediate value** (the backward
+pass will need them). For one sigmoid neuron with squared-error loss:
 $$ z = w\,x + b,\qquad a = \sigma(z),\qquad L = (a - y)^2. $$
-Those cached numbers ($z, a, L$) are exactly what the backward pass needs.
+Each step is a simple op with a known derivative — that's the foothold for going backward.
 
-## 3. The chain rule, backward
+## 4. The chain rule = multiply local slopes
 
-To get $\partial L/\partial w$, walk the path from $L$ back to $w$ and **multiply the local
-derivatives** of each step (the chain rule):
+A change in $w$ ripples down the path $w\to z\to a\to L$. The chain rule says the overall
+slope is the **product of the local slopes** along that path:
 $$ \frac{\partial L}{\partial w} = \frac{\partial L}{\partial a}\cdot\frac{\partial a}{\partial z}\cdot\frac{\partial z}{\partial w} = 2(a-y)\cdot a(1-a)\cdot x. $$
 
 <CHAIN/>
 
-Each factor is something the op already knows how to compute. The same backward value
-$\partial L/\partial a$ is *reused* for $\partial L/\partial b$ and $\partial L/\partial x$
-— that reuse is what makes backprop efficient.
+Read it **right to left**: start with the loss's own slope $\partial L/\partial a$, and as
+you step back through each operation, multiply by *that operation's* local derivative.
+Backprop is exactly this — done carefully for a whole graph.
 
-## 4. Why "reverse" mode
+## 5. A worked backward pass (real numbers)
 
-There are two ways to apply the chain rule. **Forward mode** propagates the derivative of
-*one input* through everything; **reverse mode** (backprop) propagates the derivative of
-*one output* back to *everything*. ML has **one scalar loss** and **millions of
-parameters**, so reverse mode — one backward pass gives *all* the gradients — is the
-obvious win.
+Take $x=2,\ w=1,\ b=-0.5,\ y=1$.
+**Forward:** $z = 1\cdot2-0.5 = 1.5$; $a=\sigma(1.5)\approx 0.818$; $L=(0.818-1)^2\approx 0.033$.
+**Backward:**
+- $\dfrac{\partial L}{\partial a}=2(a-y)=2(0.818-1)=-0.364$
+- $\dfrac{\partial a}{\partial z}=a(1-a)=0.818\cdot0.182\approx 0.149$
+- $\dfrac{\partial z}{\partial w}=x=2$
+- $\dfrac{\partial L}{\partial w}=(-0.364)(0.149)(2)\approx \mathbf{-0.108}$
 
-## 5. Every operation is local
+The gradient is **negative**, so gradient descent will **increase** $w$ — which is right:
+the output $0.818$ is below the target $1$, so a bigger $w$ helps. Reproduce these exact
+numbers in the Live tab.
 
-Backprop needs no global calculus. Each operation only knows its **own** local derivative
-(a tiny "send my gradient to my inputs" rule). To get all gradients you just:
-1. topologically order the computational graph, then
-2. apply the local rules in **reverse** order, accumulating into each node's `grad`.
+## 6. Reuse is what makes it cheap
 
-That's literally all `core/engine.py` does — `+`, `*`, `**`, `sigmoid`, … each carry a
-`_backward` rule, and `Value.backward()` runs them in reverse. **The Live tab is running
-exactly that engine.**
+Look at the *other* gradients: $\partial L/\partial b = \partial L/\partial a\cdot\partial a/\partial z\cdot 1$
+and $\partial L/\partial x = \partial L/\partial a\cdot\partial a/\partial z\cdot w$. **Both
+reuse** the same already-computed backward value $\partial L/\partial z=\partial L/\partial a\cdot\partial a/\partial z$.
+Backprop computes each node's incoming gradient **once** and distributes it to that node's
+inputs — so getting *all* gradients costs about the same as **one** forward pass, not one
+pass per weight. That efficiency is the whole reason deep learning is feasible.
 
-## 6. Vanishing & exploding gradients
+## 7. Why "reverse" mode (not forward)
 
-Because a gradient is a **product** of local derivatives along the path, depth multiplies
-many factors together. If they're mostly $<1$ (e.g. sigmoid's $\le 0.25$), the product
-**vanishes**; if mostly $>1$, it **explodes** (ANN §6). This is *why* ReLU, normalization,
-and residual connections exist — to keep that product near 1 through many layers.
+There are two ways to apply the chain rule to a big graph:
+- **Forward mode** — pick one *input*, push its derivative forward through everything. Cost
+  scales with the number of **inputs**.
+- **Reverse mode** (backprop) — pick one *output*, pull its derivative back to all inputs.
+  Cost scales with the number of **outputs**.
 
-## 7. This is all "autograd"
+ML has **one** output (the scalar loss) and **millions** of inputs (the weights), so reverse
+mode is the overwhelming winner: a single backward pass yields *every* gradient.
 
-PyTorch and TensorFlow do precisely this, just over **tensors** instead of scalars, on a
-GPU. Once you've seen `Value.backward()` work on a tiny graph, you've seen the engine
-behind every modern deep-learning framework. *(Lab: `core/engine.py`, experiments e04/e06.)*
+## 8. Every operation is local (the engine view)
+
+Backprop needs no global calculus — each op knows only its **own** local derivative, a tiny
+rule "given my output's gradient, here's what to add to my inputs' gradients." The algorithm:
+1. build the **computational graph** during the forward pass,
+2. **topologically sort** it (so a node is processed only after everything that uses it),
+3. apply each op's local rule in **reverse**, doing `grad +=` into each input.
+
+The **`+=`** matters: if one value feeds several places, its gradient is the **sum** of the
+contributions coming back along each path (the multivariable chain rule). That is *exactly*
+what `core/engine.py` implements — every op carries a `_backward` closure and
+`Value.backward()` runs them in reverse topological order. **The Live tab is that engine.**
+
+## 9. Local-derivative cheat-sheet
+
+| operation | what it sends back to each input |
+|---|---|
+| add $a+b$ | the gradient unchanged (copies to both) |
+| multiply $a\cdot b$ | the gradient $\times b$ to $a$, $\times a$ to $b$ |
+| power $a^{n}$ | the gradient $\times\, n\,a^{n-1}$ |
+| $\sigma(z)$ | $\times\, a(1-a)$ |
+| $\tanh(z)$ | $\times\, (1-\tanh^2 z)$ |
+| ReLU$(z)$ | $\times\, 1$ if $z>0$, else $0$ |
+
+Chain these along any path and you have that path's gradient — no calculus beyond the table.
+
+## 10. Vanishing & exploding gradients
+
+Because a path's gradient is a **product** of local slopes, **depth multiplies many factors
+together**. If most are $<1$ — sigmoid's slope peaks at $0.25$ — the product decays toward
+$0$ and the early layers barely learn (**vanishing gradients**). If most are $>1$, it blows
+up (**exploding**). This one fact explains a chunk of modern design: **ReLU** (slope $1$
+when active), **normalization**, and **residual connections** all keep that product near $1$
+through many layers (ANN §6, and the Tiny-GPT page).
+
+## 11. This is all "autograd"
+
+PyTorch, JAX and TensorFlow do precisely this, only over **tensors** on a GPU and with more
+op types. The principle is unchanged: **record a graph, then replay it backward multiplying
+local derivatives.** Once `Value.backward()` makes sense on a five-node graph, you
+understand the engine inside every deep-learning framework. *(Lab: `core/engine.py`;
+experiment **e06** checks these gradients against finite differences to ~1e-11.)*
 """
 
 _QUIZ = [

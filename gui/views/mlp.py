@@ -59,51 +59,87 @@ _LOOP_SVG = '''<div style="text-align:center;margin:0.5rem 0"><svg viewBox="0 0 
 _THEORY = r"""
 ## 1. From one neuron to a network
 
-One neuron draws one straight line (ANN §3), so it can't solve **XOR**. Stack neurons into
-a **hidden layer** and feed their outputs to an output neuron, and you get a **multilayer
-perceptron (MLP)** — the hidden units invent new features that *bend* the input space until
-the classes become separable.
+One neuron computes a weighted sum + a nonlinearity → **one straight decision line** (ANN
+§3), so it can't solve **XOR**. Put several neurons **side by side** — a **layer** — each
+drawing its own line, then feed their outputs into another neuron that **combines** those
+lines into a *bent* boundary. That stack — input → hidden layer(s) → output — is a
+**multilayer perceptron (MLP)**, the basic feed-forward neural network.
 
 <ARCH/>
 
-## 2. Why depth + nonlinearity = a universal approximator
+## 2. What a layer actually computes
 
-With a nonlinearity between layers (§8), a wide-enough MLP can approximate **any**
-continuous function to arbitrary accuracy (the *universal approximation theorem*). Each
-hidden unit contributes a "bump/fold"; combine enough of them and you can carve out any
-region. Without the nonlinearity, stacked layers would collapse back to one line.
+A layer of $h$ neurons over an $n$-dimensional input is just **$h$ dot products at once**:
+$$ \mathbf z = W\mathbf x + \mathbf b,\qquad \mathbf a = \varphi(\mathbf z), $$
+where $W$ is $h\times n$ (**one row per neuron**), $\mathbf b$ holds the $h$ biases, and
+$\varphi$ is applied elementwise. So a layer = **matrix-multiply + bias + nonlinearity** —
+the single most-executed operation in deep learning, and exactly what a GPU accelerates
+(Math X1 §5). An MLP chains them: $\mathbf a^{(1)}=\varphi(W^{(1)}\mathbf x+\mathbf b^{(1)})$,
+then $\hat y = W^{(2)}\mathbf a^{(1)}+\mathbf b^{(2)}$, and so on.
 
-## 3. The training loop
+## 3. How many parameters?
 
-Learning is the same four steps repeated until the loss is small:
+A layer mapping $n\to h$ has $h\,n$ weights $+\,h$ biases. So the XOR net $2\to h\to 1$ has
+$(2h+h)+(h+1)=\mathbf{4h+1}$ parameters — the "parameters" number in the Train tab (e.g.
+$h=8\Rightarrow33$). Real networks stack many wide layers → millions-to-billions of these
+numbers, every one learned by backprop.
+
+## 4. Why the nonlinearity is non-negotiable
+
+Remove $\varphi$ and the stack collapses: $W^{(2)}\big(W^{(1)}\mathbf x\big)=(W^{(2)}W^{(1)})\mathbf x$
+— still **one linear map**, no matter how many layers (ANN §8). The nonlinearity between
+layers is what lets each layer **reshape** space so the next one can separate it. Hidden
+layers usually use **ReLU** (or **tanh**, as in this XOR demo); the *output* activation is
+chosen to match the task (ANN §7).
+
+## 5. Universal approximation
+
+With one hidden layer and a nonlinearity, a **wide-enough** MLP can approximate *any*
+continuous function to arbitrary accuracy (Cybenko 1989 / Hornik 1991). Intuition: each
+hidden unit adds a step/bump/fold; sum enough of them and you can trace any shape. In
+practice **depth beats width** — deep nets build features **hierarchically** (edges → parts
+→ objects) and hit the same accuracy with far fewer units. (See it on richer data in the
+**Deep nets (2D)** page.)
+
+## 6. The training loop
+
+Learning is four steps repeated until the loss is small:
 
 <LOOP/>
 
-1. **Forward** — run the inputs through to get predictions $\hat y$.
-2. **Loss** — measure how wrong they are (here mean squared error).
-3. **Backward** — `loss.backward()` fills every parameter's gradient (the **Backprop**
-   page — autograd does this).
-4. **Step** — the optimizer nudges each weight downhill, $w \leftarrow w - \eta\,\partial L/\partial w$ (Math **X4**).
+1. **Forward** — push inputs through to predictions $\hat y$.
+2. **Loss** — score how wrong (here mean squared error; **cross-entropy** for
+   classification, M2 / X5).
+3. **Backward** — `loss.backward()` fills *every* parameter's gradient in one sweep (the
+   **Backprop** page).
+4. **Step** — the optimizer nudges each weight downhill,
+   $w \leftarrow w - \eta\,\partial L/\partial w$ (the **Optimizers** page, Math **X4**).
 
-The **Train** tab runs exactly this on the lab's `core.nn.MLP` + `core.optim` — watch the
-loss curve fall and the decision boundary bend until XOR is solved 4/4.
+One full pass over the data is an **epoch**; you repeat many. The **Train** tab runs exactly
+this on the lab's `core.nn.MLP` + `core.optim`.
 
-## 4. The knobs
+## 7. Initialization matters
 
-- **Hidden width** — more units = more capacity (can fit more complex boundaries, but can
-  overfit, M0). Too few and XOR won't separate.
-- **Learning rate $\eta$** — the X4 knob: too big diverges, too small crawls.
-- **Optimizer** — plain **SGD**, **Momentum** (rolls through ravines), or **Adam**
-  (adaptive per-parameter rates; often fastest to a good loss).
-- **Seed** — the random initial weights; a bad init can get stuck (re-seed and retry).
+The weights start **random** (set by the seed). Start them too large and activations
+saturate (dead gradients); start them too symmetric and every unit learns the same thing.
+Principled schemes — **Xavier/He** init (`core/init.py`) — scale the randomness to the layer
+size so both the forward signal and the backward gradient stay healthy. It's also why a
+*bad* seed in the demo can get stuck at 3/4: re-seed and retry.
 
-## 5. What you're really watching
+## 8. Capacity vs. overfitting
+
+Width and depth set the model's **capacity** — how complex a boundary it *can* draw. Too
+little → it underfits (can't even do XOR); too much → on noisy real data it can memorize the
+noise (**overfitting**, M0). The cure is **regularization** (next pages). XOR has no noise,
+so here more capacity only helps.
+
+## 9. What you're really watching
 
 The hidden layer is **learning features**. Early on the boundary is a vague blob; as
-gradients flow back and weights update, the hidden units rotate and shift their lines until
-their combination cleanly fences off the two XOR corners. That — features learned from data
-by gradient descent — is the whole idea behind deep learning. *(Lab: `core/nn.py`,
-experiment e05.)*
+gradients flow back and weights update, each hidden unit rotates and shifts its line until
+their *combination* fences off the two XOR corners. **Features learned from data by gradient
+descent** — repeated, deep, and at scale — is the entire idea behind modern deep learning.
+*(Lab: `core/nn.py`, `core/init.py`; experiment e05.)*
 """
 
 _QUIZ = [

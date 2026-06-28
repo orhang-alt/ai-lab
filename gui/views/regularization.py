@@ -64,36 +64,80 @@ def sweep(seed):
 _THEORY = r"""
 ## 1. The disease — overfitting
 
-A high-capacity network can drive **training** error to zero by memorizing the data, noise
-and all — but then it fails on new data (**test** error stays high). That gap *is*
-overfitting (M0): **low bias, high variance.**
+A high-capacity model has more than enough flexibility to **memorize** its training set —
+including the random **noise**. It then scores great on training data but **fails on new
+data**: training error falls to ~0 while **test** error stays high. That gap *is*
+overfitting. In bias–variance terms (M0) it's **low bias, high variance** — the fit swings
+wildly with whatever noise it happened to see.
 
-## 2. The cure — penalize complexity
+## 2. Why it happens
 
-**Regularization** adds a penalty for being complex, so the model only uses capacity that
-actually pays off. The most common is **L2 / weight decay** — add $\lambda\lVert\mathbf
-w\rVert^2$ to the loss:
-$$ \text{minimize}\quad L(\mathbf w) + \lambda\lVert\mathbf w\rVert^2. $$
-Big weights are now expensive, so the network prefers **smaller weights → a smoother
-function** that can't wiggle around every noisy point. $\lambda$ (sklearn's `alpha`) is the
-strength dial.
+Overfitting shows up when **capacity outruns the signal in the data**: too many parameters,
+too little or too noisy data, or training too long. With 4 clean XOR points there's no noise
+to fit, so capacity only helps; with **noisy** moons, a `40-40` net has ample room to wrap
+around individual stray points. Note the cure isn't always "smaller model" — often it's the
+**same** model, **constrained**.
 
-## 3. The sweet spot (bias–variance, again)
+## 3. The cure — penalize complexity
 
-- **Too little** $\lambda$ → wiggly boundary, big train–test gap (**overfit**).
-- **Too much** $\lambda$ → boundary too smooth to capture the real shape (**underfit**).
-- The best $\lambda$ — chosen on a **validation set** (M6) — sits in between, where test
-  accuracy peaks. The **Tune** tab sweeps $\lambda$ and marks it.
+**Regularization** adds a penalty for complexity, so the optimizer only "spends" capacity
+that genuinely lowers the loss. The workhorse is **L2** (a.k.a. ridge / **weight decay**):
+add the squared size of the weights to the loss,
+$$ \text{minimize}\quad L(\mathbf w) + \lambda\,\lVert\mathbf w\rVert_2^2. $$
+$\lambda$ (scikit-learn's `alpha`) is the **strength dial**: $0$ = no penalty, large = weights
+pushed hard toward $0$.
 
-## 4. Other ways to regularize a net
+## 4. Why small weights = a smoother function
 
-- **L1** — drives weights to exactly 0 (sparsity / feature selection).
-- **Early stopping** — halt training when validation error starts rising.
-- **Dropout** — randomly zero units during training so the net can't rely on any one.
-- **More data / augmentation** — the most reliable cure of all.
+Big weights let a network make **steep, sharp** swings in its output — exactly the wiggles
+needed to dart around noisy points. Penalizing $\lVert\mathbf w\rVert^2$ makes big weights
+expensive, so the network settles for **smaller weights → gentler slopes → a smoother
+boundary** that follows the trend instead of the noise. (Same mechanism as ridge regression
+in M1.)
 
-All trade a little training fit for a lot more **generalization** — the whole game (M0/M6,
-and "weight decay" in the ANN module). *(Lab tie-ins: Deep-nets page, M0, M6.)*
+## 5. "Weight decay" — what it does to each step
+
+Why the nickname? The penalty $\lambda\lVert\mathbf w\rVert^2$ contributes $2\lambda\mathbf w$
+to the gradient, so a gradient step becomes
+$$ \mathbf w \leftarrow \mathbf w - \eta\nabla L - 2\eta\lambda\mathbf w = (1-2\eta\lambda)\,\mathbf w \;-\; \eta\nabla L. $$
+Every step first **shrinks** the weights by a small factor, *then* applies the usual update —
+they "decay" toward zero unless the data keeps pushing back. (Modern nets use **AdamW**,
+which decouples this decay cleanly — Optimizers page.)
+
+## 6. The sweet spot (bias–variance, again)
+
+- **Too little** $\lambda$ → wiggly boundary, big train–test gap (**overfit / high variance**).
+- **Too much** $\lambda$ → weights crushed, boundary too smooth to capture the real shape
+  (**underfit / high bias**).
+- The best $\lambda$ sits **in between**, where *validation* accuracy peaks — chosen by a
+  **validation set / cross-validation** (M6), never the test set. The **Tune** tab sweeps
+  $\lambda$ and marks that peak.
+
+## 7. L1 vs. L2
+
+- **L2** ($\lVert\mathbf w\rVert_2^2$) shrinks *all* weights smoothly toward 0 — the default for nets.
+- **L1** ($\lVert\mathbf w\rVert_1$) drives many weights to **exactly 0** → a **sparse** model
+  / automatic feature selection (lasso, M1/M6); its diamond-shaped penalty makes zero-corners
+  the likely solution.
+- **Elastic net** blends the two.
+
+## 8. Other regularizers (especially for nets)
+
+- **Dropout** — randomly **zero a fraction of units each training step**, so the network
+  can't lean on any single unit; it behaves like training a huge **ensemble** of sub-networks
+  that share weights (averaged at test time).
+- **Early stopping** — watch validation loss and **stop** when it starts rising; cheap and
+  very effective.
+- **Data augmentation / more data** — the most reliable cure of all: more (or cleverly
+  varied) examples leave less room to memorize noise.
+- **Batch norm**, smaller models, and label smoothing also regularize as a side effect.
+
+## 9. The takeaway
+
+Every regularizer trades a little **training fit** for a lot more **generalization** —
+accepting slightly higher bias to kill variance. That trade *is* the central skill of
+practical ML (M0 / M6), and **weight decay** is its everyday face in deep learning. *(Lab
+tie-ins: Deep-nets page, M0 bias–variance, M6 model selection; `core/optim.py`.)*
 """
 
 _QUIZ = [
