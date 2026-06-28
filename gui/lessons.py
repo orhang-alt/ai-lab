@@ -427,8 +427,7 @@ The same $a=\varphi(\mathbf w\cdot\mathbf x+b)$ already does useful work on its 
 - **Spam filter** — features like "contains the word *free*", "number of links",
   "ALL-CAPS ratio"; sigmoid output = $P(\text{spam})$. Each weight is a feature's
   "spamminess" — literally a log-odds (§5).
-- **House price** — a *linear* neuron over $[\text{area},\,\text{bedrooms},\,
-  \text{age}]$ → a price. (That's linear regression — see the ML module.)
+- **House price** — a *linear* neuron over $[\text{area},\,\text{bedrooms},\, \text{age}]$ → a price. (That's linear regression — see the ML module.)
 - **Medical risk** — $[\text{age},\,\text{BMI},\,\text{glucose}]\to P(\text{diabetes})$.
 
 **A tiny numeric trace (spam).** Weights $\mathbf w=[2.0,\,1.5,\,-1.0]$ for

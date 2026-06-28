@@ -74,7 +74,7 @@ $$ \mathbf w \leftarrow \mathbf w - \eta\,\tfrac1m X^\top(\hat y - y), \qquad b 
 
 Because the MSE is a **convex bowl**, "downhill" always leads to the one global
 minimum. Each step moves $w$ against the slope (gradient); steps are **big when far
-out, small near the bottom** — so it glides in and settles at the best fit $w^\*$:
+out, small near the bottom** — so it glides in and settles at the best fit $w^*$:
 
 <div style="text-align:center;margin:0.6rem 0"><svg viewBox="0 0 480 320" style="width:100%;max-width:470px;height:auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The mean squared error drawn as a convex bowl over the weight w; gradient descent takes steps downhill, large when far away and small near the bottom, converging at the minimum."><defs><marker id="gdah" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#9A6A2A"/></marker></defs><rect x="1" y="1" width="478" height="318" rx="14" fill="#FAFAF7" stroke="#E2E2DA"/><line x1="55" y1="275" x2="448" y2="275" stroke="#C9C8C1" stroke-width="1.2"/><line x1="55" y1="275" x2="55" y2="45" stroke="#C9C8C1" stroke-width="1.2"/><polyline points="60,142 70,154 79,166 88,177 98,187 108,196 117,204 126,212 136,219 146,226 155,231 164,236 174,240 184,243 193,246 202,248 212,249 222,249 231,249 240,248 250,246 260,244 269,240 278,236 288,232 298,226 307,220 316,213 326,205 336,197 345,188 354,178 364,167 374,156 383,143 392,130 402,117 412,103 421,87 431,72 440,55" fill="none" stroke="#5B8FC2" stroke-width="2.5"/><line x1="222" y1="249" x2="222" y2="275" stroke="#1D9E75" stroke-width="1.4" stroke-dasharray="4 3"/><text x="222" y="291" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#1D9E75">w* (best)</text><g stroke="#9A6A2A" stroke-width="1.6" fill="none"><line x1="83" y1="170" x2="116" y2="203" marker-end="url(#gdah)"/><line x1="125" y1="212" x2="146" y2="224" marker-end="url(#gdah)"/><line x1="156" y1="232" x2="168" y2="236" marker-end="url(#gdah)"/></g><g fill="#9A6A2A"><circle cx="79" cy="166" r="4.5"/><circle cx="121" cy="208" r="4.5"/><circle cx="151" cy="229" r="4.5"/><circle cx="172" cy="239" r="4.5"/><circle cx="186" cy="244" r="4.5"/><circle cx="197" cy="247" r="4.5"/><circle cx="204" cy="248" r="4.5"/></g><text x="79" y="156" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#9A6A2A">start</text><text x="436" y="293" font-family="sans-serif" font-size="13" fill="#9C9B95">w</text><text x="38" y="52" font-family="sans-serif" font-size="13" fill="#9C9B95">MSE</text><text x="352" y="86" font-family="sans-serif" font-size="12" fill="#6B6A66">convex → one minimum</text></svg></div>
 
@@ -148,8 +148,8 @@ Predict tip from bill on 4 receipts: $x = [10, 20, 30, 40]$, $y = [2, 3, 5, 6]$.
 - slope $w = 70/500 = 0.14$; intercept $b = \bar y - w\bar x = 4 - 0.14(25) = 0.5$.
 
 So $\hat y = 0.14\,x + 0.5$: each extra dollar of bill adds ~14¢ of tip, and a \$50
-bill predicts $\hat y = 0.14(50) + 0.5 = \$7.50$. (Enter these points in the Playground
-and press **Fit** to get the same line.)
+bill predicts $\hat y = 0.14(50) + 0.5 = 7.5$ — i.e. a tip of **\$7.50**. (Enter these
+points in the Playground and press **Fit** to get the same line.)
 """
 
 _TASKS = r"""
@@ -755,8 +755,7 @@ $$ \text{BCE} = -\frac1m\sum_i\big[\,y_i\log p_i + (1-y_i)\log(1-p_i)\,\big]. $$
 Read one example: when the truth is $y=1$ the penalty is $-\log p$ — it is **0 when
 $p=1$** (confident and right) and **$\to\infty$ as $p\to0$** (confident and *wrong*).
 So cross-entropy punishes confident mistakes brutally, which pushes the model toward
-honest probabilities. (Predicting $p=0.01$ for a true positive costs $-\log 0.01\approx
-4.6$; predicting $p=0.9$ costs only $\approx0.1$.)
+honest probabilities. (Predicting $p=0.01$ for a true positive costs $-\log 0.01\approx 4.6$; predicting $p=0.9$ costs only $\approx0.1$.)
 
 Why not MSE? With a sigmoid, MSE is **non-convex** and its gradient nearly vanishes when
 the neuron is confidently wrong (slow learning). BCE is convex in $\mathbf w, b$ and

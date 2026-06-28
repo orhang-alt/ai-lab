@@ -38,8 +38,7 @@ steep. At a minimum, $f'(x)=0$ (flat).
 
 ## 4. Partial derivatives
 
-Loss functions depend on *many* parameters. A **partial derivative** $\dfrac{\partial
-f}{\partial x_i}$ is the derivative w.r.t. one variable, **holding the others fixed**.
+Loss functions depend on *many* parameters. A **partial derivative** $\dfrac{\partial f}{\partial x_i}$ is the derivative w.r.t. one variable, **holding the others fixed**.
 Example: $f(x,y)=x^2+3xy \Rightarrow \frac{\partial f}{\partial x}=2x+3y$,
 $\frac{\partial f}{\partial y}=3x$.
 
@@ -139,8 +138,7 @@ yet has a **kink** (no derivative) there — exactly why ReLU's derivative is un
 At a max/min the gradient vanishes — the **first-order condition** $\nabla f=\mathbf 0$
 (a *critical point*). Classify it by curvature, the **second-order condition** on the
 **Hessian** $H$: positive-definite (all eigenvalues $>0$) → local **min**;
-negative-definite → **max**; mixed signs → **saddle**. For a **convex** $f$, $\nabla
-f=\mathbf 0$ already guarantees a *global* min — why convex losses (X4) are easy.
+negative-definite → **max**; mixed signs → **saddle**. For a **convex** $f$, $\nabla f=\mathbf 0$ already guarantees a *global* min — why convex losses (X4) are easy.
 
 ## 16. The gradient cookbook (vector/matrix calculus)
 
@@ -156,10 +154,8 @@ These six cover most gradients you'll derive in the lab.
 
 ## 17. The Jacobian — derivatives of vector functions
 
-When $f:\mathbb R^n\to\mathbb R^m$, its derivative is the **Jacobian** $J$, the $m\times
-n$ matrix $J_{ij}=\partial y_i/\partial x_j$. The multivariate chain rule is **Jacobian
-multiplication**: for $\mathbf z=g(f(\mathbf x))$, $J_{\mathbf z/\mathbf x}=J_{\mathbf
-z/\mathbf y}\,J_{\mathbf y/\mathbf x}$. A neural net is a chain of such maps, and backprop
+When $f:\mathbb R^n\to\mathbb R^m$, its derivative is the **Jacobian** $J$, the $m\times n$ matrix $J_{ij}=\partial y_i/\partial x_j$. The multivariate chain rule is **Jacobian
+multiplication**: for $\mathbf z=g(f(\mathbf x))$, $J_{\mathbf z/\mathbf x}=J_{\mathbf z/\mathbf y}\,J_{\mathbf y/\mathbf x}$. A neural net is a chain of such maps, and backprop
 multiplies their Jacobians right-to-left.
 
 ## 18. Forward vs. reverse mode (why backprop is "reverse")
@@ -349,8 +345,7 @@ measures spread; **std** $=\sqrt{\operatorname{Var}}$ is in the same units. Expe
 
 ## 5. Joint, marginal, conditional & independence
 
-$P(A,B)$ is the **joint**; summing out a variable gives the **marginal**; $P(A\mid B)=
-\frac{P(A,B)}{P(B)}$ is the **conditional** ("A given B"). $A,B$ are **independent** iff
+$P(A,B)$ is the **joint**; summing out a variable gives the **marginal**; $P(A\mid B)= \frac{P(A,B)}{P(B)}$ is the **conditional** ("A given B"). $A,B$ are **independent** iff
 $P(A,B)=P(A)P(B)$. Independence (often the *naive* assumption) makes models tractable.
 
 ## 6. Bayes' rule — updating beliefs
@@ -358,8 +353,7 @@ $P(A,B)=P(A)P(B)$. Independence (often the *naive* assumption) makes models trac
 $$ P(H\mid D)=\frac{P(D\mid H)\,P(H)}{P(D)} \;\;\propto\;\; \underbrace{P(D\mid H)}_{\text{likelihood}}\,\underbrace{P(H)}_{\text{prior}}. $$
 **Worked example (the base-rate trap).** A disease affects 1% of people. A test is 99%
 accurate both ways. You test positive — chance you're sick? Of 10,000 people, 100 are
-sick (99 test +), 9,900 healthy (99 false +). So $P(\text{sick}\mid +)=99/(99+99)=
-\mathbf{50\%}$, not 99%. Rare conditions + imperfect tests ⇒ many false positives — the
+sick (99 test +), 9,900 healthy (99 false +). So $P(\text{sick}\mid +)=99/(99+99)= \mathbf{50\%}$, not 99%. Rare conditions + imperfect tests ⇒ many false positives — the
 intuition behind precision/recall (M2).
 
 ## 7. Maximum likelihood estimation (MLE)
@@ -442,8 +436,7 @@ Conditioning lets you break a hard probability into manageable cases.
 
 - **LLN:** the sample mean $\bar X_n\to\mathbb E[X]$ as $n\to\infty$ — averages converge to the truth.
 - **CLT:** for i.i.d. $X_i$ with mean $\mu$, variance $\sigma^2$, the standardized mean
-  $\frac{\bar X_n-\mu}{\sigma/\sqrt n}\to\mathcal N(0,1)$, i.e. $\bar X_n\approx\mathcal
-  N(\mu,\sigma^2/n)$ — the shrinking-spread Gaussian from the X3 playground.
+  $\frac{\bar X_n-\mu}{\sigma/\sqrt n}\to\mathcal N(0,1)$, i.e. $\bar X_n\approx\mathcal N(\mu,\sigma^2/n)$ — the shrinking-spread Gaussian from the X3 playground.
 
 ## 17. Estimator quality — bias, variance, consistency
 
@@ -848,8 +841,7 @@ direct line from this lesson to how GPT-class models are trained and evaluated.
 
 ## 11. A worked example
 
-True label one-hot $p=[1,0]$, model $q=[0.7,0.3]$ ⇒ cross-entropy $=-\log_2 0.7\approx
-\mathbf{0.51}$ bits. Sure-and-right ($q=[1,0]$) ⇒ **0**; sure-and-wrong ($q=[0.01,0.99]$)
+True label one-hot $p=[1,0]$, model $q=[0.7,0.3]$ ⇒ cross-entropy $=-\log_2 0.7\approx \mathbf{0.51}$ bits. Sure-and-right ($q=[1,0]$) ⇒ **0**; sure-and-wrong ($q=[0.01,0.99]$)
 ⇒ $-\log_2 0.01\approx\mathbf{6.6}$ bits. That steep penalty for confident errors is what
 trains the classifier.
 
@@ -875,8 +867,7 @@ distance of the joint from independence — which makes it symmetric and $\ge 0$
 
 ## 15. The softmax + cross-entropy gradient (derived)
 
-For logits $\mathbf z$, $\mathbf p=\mathrm{softmax}(\mathbf z)$, one-hot target $\mathbf
-y$, loss $L=-\sum_k y_k\log p_k$:
+For logits $\mathbf z$, $\mathbf p=\mathrm{softmax}(\mathbf z)$, one-hot target $\mathbf y$, loss $L=-\sum_k y_k\log p_k$:
 $$ \frac{\partial L}{\partial z_i}=p_i-y_i. $$
 The messy softmax Jacobian and the $\log$ cancel into a clean "**prediction − target**" —
 the reason softmax and cross-entropy are *always* paired (M2, ANN e08). Worth deriving once.
@@ -1053,8 +1044,7 @@ default, so bit-exact reproducibility on GPU needs extra flags.
 ## 12. IEEE-754 anatomy
 
 A float stores three parts: **sign** (1 bit), **exponent**, and **mantissa** (fraction).
-float32 = 1 + 8 + 23 bits, with value $(-1)^s\times 1.\text{mantissa}\times
-2^{\text{exp}-127}$ — "scientific notation in binary": ~7 significant decimal digits,
+float32 = 1 + 8 + 23 bits, with value $(-1)^s\times 1.\text{mantissa}\times 2^{\text{exp}-127}$ — "scientific notation in binary": ~7 significant decimal digits,
 range ~$10^{\pm38}$. Special bit-patterns encode $\pm\infty$, **NaN**, and subnormals.
 The layout is *why* precision is **relative** (next section).
 
@@ -1076,8 +1066,7 @@ case (next).
 
 ## 15. Solving linear systems — never invert
 
-To solve $A\mathbf x=\mathbf b$ (e.g. the normal equations $X^\top X\mathbf w=X^\top\mathbf
-y$ from M1), **don't compute $A^{-1}$** — it's slower and less stable. Use a
+To solve $A\mathbf x=\mathbf b$ (e.g. the normal equations $X^\top X\mathbf w=X^\top\mathbf y$ from M1), **don't compute $A^{-1}$** — it's slower and less stable. Use a
 **factorization**: **Cholesky** (symmetric positive-definite, like $X^\top X$), **LU**,
 or — best for least squares — **QR / SVD** on $X$ directly (avoids forming the
 ill-conditioned $X^\top X$). `np.linalg.lstsq` / `solve` do this; calling `inv` is a code
