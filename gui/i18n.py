@@ -17,6 +17,10 @@ LANGUAGES = {
 
 DEFAULT_LANG = "en"
 
+# Turkish is fully built (catalog_tr.py + *.tr.md) but hidden for now. Flip this to
+# True to bring back the in-app language selector and Turkish rendering.
+MULTILINGUAL = False
+
 TEXT = {
     "app.brand": {"en": "AI Lab", "tr": "AI Lab"},
     "app.language": {"en": "Language", "tr": "Dil"},
@@ -99,6 +103,8 @@ TEXT = {
 
 
 def lang() -> str:
+    if not MULTILINGUAL:
+        return DEFAULT_LANG
     return st.session_state.get("lang", DEFAULT_LANG)
 
 
@@ -115,6 +121,8 @@ def t(key: str, *, language: str | None = None) -> str:
 
 
 def select_language() -> str:
+    if not MULTILINGUAL:  # selector hidden — English only
+        return DEFAULT_LANG
     current = lang()
     labels = list(LANGUAGES.values())
     codes = list(LANGUAGES.keys())
