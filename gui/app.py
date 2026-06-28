@@ -115,20 +115,35 @@ if SANDBOX_ENABLED:
     for _sections in MODULES.values():
         _sections["Tools"] = [SANDBOX]
 
-# --- module selector (the "select at the beginning") ------------------------
-module = st.sidebar.segmented_control(
-    "Module", list(MODULES), default="ANN", key="module",
-    help="ANN = neural networks (single neuron → GPT). "
-         "ML = classical machine learning. "
-         "Math = the mathematical basics for both.",
-) or "ANN"
-st.sidebar.caption(f"Module: **{module}**")
-st.sidebar.divider()
+# --- sidebar: brand + module selector pinned to the TOP, then grouped links --
+TRACK_BLURB = {
+    "ANN": "Neural networks — a single neuron → a GPT.",
+    "ML": "Classical machine learning (M0–M8).",
+    "Math": "The foundations — dip in as needed.",
+}
+with st.sidebar:
+    st.markdown("## 🧠 AI Lab")
+    module = st.segmented_control(
+        "Module", list(MODULES), default="ANN", key="module",
+        help="ANN = neural networks (single neuron → GPT) · "
+             "ML = classical machine learning · Math = the maths behind both.",
+    ) or "ANN"
+    st.caption(TRACK_BLURB[module])
+    st.divider()
 
-nav = st.navigation(MODULES[module])
+# position="hidden": we render our own grouped links below, so the Module selector sits on top.
+nav = st.navigation(MODULES[module], position="hidden")
+
+with st.sidebar:
+    for section, pages in MODULES[module].items():
+        st.markdown(
+            f"<div style='font-size:.72rem;font-weight:700;letter-spacing:.04em;"
+            f"text-transform:uppercase;color:#9C9B95;margin:.6rem 0 .1rem'>{section}</div>",
+            unsafe_allow_html=True,
+        )
+        for p in pages:
+            st.page_link(p)
+    st.divider()
+    st.caption("**Orhan Gökçöl's** personal AI lab · free to use 🧠")
+
 nav.run()
-
-# --- attribution footer, pinned to the bottom of the sidebar ---------------
-st.sidebar.divider()
-st.sidebar.caption("**Orhan Gökçöl's** personal AI lab")
-st.sidebar.caption("Free to use. 🧠")
