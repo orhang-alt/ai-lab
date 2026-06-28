@@ -270,10 +270,22 @@ TREES = Lesson("trees", "Trees & ensembles", _M3_THEORY, _M3_QUIZ, _M3_TASKS, _M
 _M4_THEORY = r"""
 ## 1. The idea — the widest street
 
-A **Support Vector Machine** is a linear classifier with a special goal: among all
-boundaries that separate the classes, choose the one with the **largest margin** — the
-widest empty "street" between the two classes. The intuition: a boundary that stays far
-from every point is the most robust to noise and generalizes best.
+When two classes are cleanly separable, **many** different straight lines split them — so
+*which* line is best? A **Support Vector Machine (SVM)** gives a crisp answer: pick the
+boundary that leaves the **widest empty "street"** between the classes. Formally, among
+all separating lines it **maximizes the margin** — the distance from the boundary out to
+the nearest point on either side.
+
+Why the widest? A boundary jammed up against the training points is fragile — a little
+noise can push a point across it. A boundary parked in the **middle of the widest gap**
+has the most breathing room left over, so it tends to **generalize best** to unseen data.
+Think of steering down the **centre of the road** instead of hugging one curb.
+
+<div style="text-align:center;margin:0.6rem 0"><svg viewBox="0 0 460 270" style="width:100%;max-width:460px;height:auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Several thin lines can separate the two classes, but the SVM chooses the boundary sitting in the middle of the widest empty street; the two points touching the street edges are the support vectors."><defs><marker id="wsar" markerWidth="8" markerHeight="8" refX="4" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 z" fill="#6B6A66"/></marker></defs><rect x="1" y="1" width="458" height="268" rx="14" fill="#FAFAF7" stroke="#E2E2DA"/><rect x="150" y="28" width="100" height="222" fill="#EAF1F8"/><line x1="134" y1="28" x2="158" y2="250" stroke="#CBC9C2" stroke-width="1.4"/><line x1="264" y1="28" x2="242" y2="250" stroke="#CBC9C2" stroke-width="1.4"/><line x1="150" y1="28" x2="150" y2="250" stroke="#9C9B95" stroke-width="1.3" stroke-dasharray="5 3"/><line x1="250" y1="28" x2="250" y2="250" stroke="#9C9B95" stroke-width="1.3" stroke-dasharray="5 3"/><line x1="200" y1="28" x2="200" y2="250" stroke="#33312E" stroke-width="2.4"/><line x1="152" y1="208" x2="248" y2="208" stroke="#6B6A66" stroke-width="1.3" marker-start="url(#wsar)" marker-end="url(#wsar)"/><text x="200" y="201" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#6B6A66">margin</text><g fill="#A32D2D"><circle cx="58" cy="170" r="4.5"/><circle cx="90" cy="210" r="4.5"/><circle cx="110" cy="242" r="4.5"/><circle cx="78" cy="128" r="4.5"/><circle cx="150" cy="120" r="4.5"/></g><g fill="#185FA5"><circle cx="300" cy="92" r="4.5"/><circle cx="332" cy="132" r="4.5"/><circle cx="356" cy="166" r="4.5"/><circle cx="304" cy="212" r="4.5"/><circle cx="250" cy="160" r="4.5"/></g><g fill="none" stroke="#33312E" stroke-width="1.6"><circle cx="150" cy="120" r="9"/><circle cx="250" cy="160" r="9"/></g><text x="200" y="20" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#9C9B95">thin grey lines also separate — but hug the points</text><text x="62" y="262" font-family="sans-serif" font-size="11" fill="#33312E">support vectors (circled) touch the street edges</text></svg></div>
+
+The two cluster-edge points the street just touches are special — they alone pin the
+boundary in place (that's §3). Everything below builds this up precisely, then teaches it
+to tolerate overlap (§4) and bend into curves (§6).
 
 ## 2. The margin, made precise
 
@@ -289,36 +301,93 @@ A clean convex (quadratic) program with a unique solution.
 
 ## 3. Support vectors
 
-At the optimum, only the points **on the margin** ($y_i(\mathbf w\cdot\mathbf x_i+b)=1$)
-have nonzero influence — these are the **support vectors**. Move or delete any *other*
-point and the boundary doesn't change. Consequences: the model is **sparse** (defined by
-a few points), memory-light at prediction time, and robust to far-away data.
+Here is the SVM's most surprising property. At the optimum, **only the points sitting
+right on the street's edges matter** — the ones with $y_i(\mathbf w\cdot\mathbf x_i+b)=1$.
+These are the **support vectors**: they "support" (hold up) the boundary the way tent
+poles hold up a tent. Every *other* point — anything sitting comfortably inside its own
+class — could be **moved, or even deleted, and the boundary would not budge** at all.
+
+Three consequences follow:
+
+- **Sparsity** — the trained model is defined by just a handful of points, not the whole
+  dataset. A prediction only compares the new point against those few.
+- **Robustness** — the bulk of the data and any far-away points have *zero* influence, so
+  the fit is decided by the **hard, borderline** cases, never swayed by easy ones.
+- **A caution** — because a few border points decide everything, one mislabeled point
+  right on the margin can shift the boundary noticeably. The soft margin (§4) is what
+  guards against that.
 
 ## 4. Soft margin & the C knob
 
-Real data overlaps, so allow **slack** $\xi_i\ge0$ (a point may sit inside the margin or
-be misclassified):
+Real data **overlaps** — usually no straight line separates it perfectly. A strict "hard
+margin" that demands zero mistakes would then be impossible, or would contort itself
+around a single outlier. The fix is the **soft margin**: give each point some **slack**
+$\xi_i\ge 0$ — the amount it's allowed to intrude into the street, or even sit on the
+wrong side — and then *charge* for that slack:
 $$ \min\ \tfrac12\lVert\mathbf w\rVert^2 + C\sum_i\xi_i \quad\text{s.t.}\quad y_i(\mathbf w\cdot\mathbf x_i+b)\ge 1-\xi_i. $$
-**C** is the regularization dial (the M0 bias–variance knob):
-- **large C** → punish violations hard → narrow margin, fits training data (low bias, high variance);
-- **small C** → tolerate violations → wide margin, smoother (high bias, low variance).
+The first term still wants a **wide** street; the second adds a penalty $C$ for every unit
+of violation. So **C is the regularization dial** — precisely the M0 bias–variance knob:
+
+- **Large C** → violations are expensive → the street **narrows** to avoid them → fits the
+  training data tightly (**low bias, high variance** → can overfit).
+- **Small C** → violations are cheap → the street **widens**, shrugging off a few
+  stragglers → a smoother, more general boundary (**high bias, low variance**).
+
+<div style="text-align:center;margin:0.6rem 0"><svg viewBox="0 0 520 250" style="width:100%;max-width:520px;height:auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two panels. Small C gives a wide street that tolerates a few points violating the margin. Large C gives a narrow street that hugs the points to avoid violations."><rect x="1" y="1" width="518" height="248" rx="14" fill="#FAFAF7" stroke="#E2E2DA"/><rect x="95" y="35" width="95" height="170" fill="#EAF1F8"/><line x1="95" y1="35" x2="95" y2="205" stroke="#9C9B95" stroke-width="1.2" stroke-dasharray="5 3"/><line x1="190" y1="35" x2="190" y2="205" stroke="#9C9B95" stroke-width="1.2" stroke-dasharray="5 3"/><line x1="142" y1="35" x2="142" y2="205" stroke="#33312E" stroke-width="2.2"/><g fill="#A32D2D"><circle cx="40" cy="90" r="4.5"/><circle cx="58" cy="150" r="4.5"/><circle cx="72" cy="192" r="4.5"/><circle cx="48" cy="118" r="4.5"/><circle cx="156" cy="104" r="4.5"/></g><g fill="#185FA5"><circle cx="220" cy="80" r="4.5"/><circle cx="234" cy="140" r="4.5"/><circle cx="246" cy="186" r="4.5"/><circle cx="210" cy="110" r="4.5"/><circle cx="120" cy="176" r="4.5"/></g><text x="142" y="226" text-anchor="middle" font-family="sans-serif" font-size="11.5" fill="#33312E">small C — wide street, tolerates violations</text><rect x="375" y="35" width="34" height="170" fill="#EAF1F8"/><line x1="375" y1="35" x2="375" y2="205" stroke="#9C9B95" stroke-width="1.2" stroke-dasharray="5 3"/><line x1="409" y1="35" x2="409" y2="205" stroke="#9C9B95" stroke-width="1.2" stroke-dasharray="5 3"/><line x1="392" y1="35" x2="392" y2="205" stroke="#33312E" stroke-width="2.2"/><g fill="#A32D2D"><circle cx="300" cy="92" r="4.5"/><circle cx="322" cy="150" r="4.5"/><circle cx="340" cy="192" r="4.5"/><circle cx="356" cy="120" r="4.5"/><circle cx="374" cy="150" r="4.5"/></g><g fill="#185FA5"><circle cx="478" cy="80" r="4.5"/><circle cx="492" cy="140" r="4.5"/><circle cx="458" cy="186" r="4.5"/><circle cx="436" cy="110" r="4.5"/><circle cx="410" cy="134" r="4.5"/></g><text x="430" y="226" text-anchor="middle" font-family="sans-serif" font-size="11.5" fill="#33312E">large C — narrow street, hugs the points</text></svg></div>
+
+You choose C by cross-validation (§8, M6); the best value depends on how noisy and
+overlapped your data is.
 
 ## 5. The hinge-loss view
 
-That soft-margin program is equivalent to minimizing the **hinge loss** plus L2:
+The soft-margin program has a second, very useful face: it is exactly the same as
+minimizing the **hinge loss** plus an L2 penalty:
 $$ \sum_i \max\!\big(0,\ 1 - y_i\,f(\mathbf x_i)\big) + \lambda\lVert\mathbf w\rVert^2,\qquad \lambda = \tfrac{1}{2C}. $$
-Hinge loss is **0 once a point is correct *and* beyond the margin** — so only border
-cases drive the fit. Contrast logistic regression's **log loss**, which every point
-nudges and which yields probabilities. (Both are linear classifiers; they differ only in
-the loss.)
+Read it through the **margin** $m = y_i\,f(\mathbf x_i)$ — positive when a point is on the
+correct side, larger the further it is from the boundary:
+
+- $m \ge 1$ (correct **and** past the street) → loss is **exactly 0**: the point is happy
+  and contributes nothing to the fit.
+- $0 \le m < 1$ (correct but inside the street) → a small, growing penalty.
+- $m < 0$ (wrong side) → the penalty keeps growing linearly.
+
+So only **border and violating** points push the boundary — which is the loss-function
+reason the answer depends on the support vectors alone (§3). Here are three losses on one
+axis:
+
+<div style="text-align:center;margin:0.6rem 0"><svg viewBox="0 0 460 280" style="width:100%;max-width:460px;height:auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Three classification losses versus the margin: the 0/1 loss is a step at zero, the hinge loss falls linearly and becomes exactly zero once the margin passes 1 (with a kink there), and the log loss is smooth and never reaches zero."><rect x="1" y="1" width="458" height="278" rx="14" fill="#FAFAF7" stroke="#E2E2DA"/><line x1="55" y1="235" x2="440" y2="235" stroke="#C9C8C1" stroke-width="1.2"/><line x1="55" y1="38" x2="55" y2="235" stroke="#C9C8C1" stroke-width="1.2"/><line x1="205" y1="42" x2="205" y2="235" stroke="#D9D8D1" stroke-width="1" stroke-dasharray="4 3"/><line x1="280" y1="42" x2="280" y2="235" stroke="#ECEBE4" stroke-width="1" stroke-dasharray="4 3"/><polyline points="55,172 205,172 205,235 440,235" fill="none" stroke="#9C9B95" stroke-width="1.6" stroke-dasharray="5 3"/><polyline points="55,45 61,47 68,54 74,61 80,67 87,74 93,80 99,86 106,93 112,99 119,105 125,110 131,116 138,122 144,127 150,132 157,138 163,143 169,147 176,152 182,157 188,161 195,165 201,169 208,173 214,177 220,180 227,184 233,187 239,190 246,193 252,196 258,199 265,201 271,203 277,206 284,208 290,210 297,211 303,213 309,215 316,216 322,218 328,219 335,220 341,221 347,222 354,223 360,224 366,225 373,226 379,226 386,227 392,228 398,228 405,229 411,229 417,230 424,230 430,231" fill="none" stroke="#185FA5" stroke-width="2.4"/><polyline points="55,45 87,72 119,99 150,126 182,152 214,179 246,206 277,233 284,235 430,235" fill="none" stroke="#9A6A2A" stroke-width="2.4"/><g font-family="sans-serif" font-size="11" fill="#6B6A66"><text x="205" y="250" text-anchor="middle">m=0</text><text x="280" y="250" text-anchor="middle">m=1</text><text x="392" y="252">margin m = y·f(x)</text><text x="36" y="50">loss</text></g><g font-family="sans-serif" font-size="11.5"><line x1="320" y1="58" x2="342" y2="58" stroke="#9A6A2A" stroke-width="2.4"/><text x="346" y="62" fill="#9A6A2A">hinge</text><line x1="320" y1="76" x2="342" y2="76" stroke="#185FA5" stroke-width="2.4"/><text x="346" y="80" fill="#185FA5">log loss</text><line x1="320" y1="94" x2="342" y2="94" stroke="#9C9B95" stroke-width="1.6" stroke-dasharray="5 3"/><text x="346" y="98" fill="#9C9B95">0/1 loss</text></g></svg></div>
+
+The dashed **0/1 loss** is what we'd *love* to minimize (just the count of mistakes), but
+it's flat with a cliff — non-differentiable, useless for optimization. **Hinge** is its
+convex stand-in with the tell-tale **kink at $m=1$** (the SVM's choice). **Log loss**
+(logistic regression, M2) is smooth and **never quite reaches zero**, so *every* point
+keeps nudging the boundary — which is why logistic regression yields calibrated
+probabilities, while the SVM yields a sparse, margin-focused boundary. Same linear model,
+**different loss curve**.
 
 ## 6. The kernel trick — non-linear boundaries for free
 
-The whole optimization (its dual form) touches the data only through **dot products**
-$\mathbf x_i\cdot\mathbf x_j$. Replace each with a **kernel** $K(\mathbf x_i,\mathbf x_j)$
-— the dot product in some high-dimensional feature space $\phi(\mathbf x)$ — and you get
-a **non-linear boundary in the original space without ever computing $\phi$**. Any
-$K$ satisfying Mercer's condition (it must correspond to a valid inner product) works.
+A straight line is useless when the classes curl around each other. The classic escape is
+to **add features**. Picture 1-D data where one class sits in the **middle** and the other
+at **both ends** (left below): no single threshold can split them. But **lift** each point
+with an extra coordinate $x^2$ and they rearrange in 2-D so that a *straight* line
+separates them (right) — and that straight line corresponds to a **curved** boundary back
+in the original 1-D space:
+
+<div style="text-align:center;margin:0.6rem 0"><svg viewBox="0 0 520 280" style="width:100%;max-width:520px;height:auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Left: in one dimension the blue class is in the middle and red on both ends, so no single threshold separates them. Right: adding an x-squared coordinate lifts the points onto a parabola, where one straight horizontal line cleanly separates blue (low) from red (high)."><rect x="1" y="1" width="518" height="278" rx="14" fill="#FAFAF7" stroke="#E2E2DA"/><text x="130" y="42" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#33312E">original 1-D — no cut works</text><line x1="30" y1="150" x2="230" y2="150" stroke="#C9C8C1" stroke-width="1.4"/><g fill="#185FA5"><circle cx="100" cy="150" r="5"/><circle cx="120" cy="150" r="5"/><circle cx="145" cy="150" r="5"/><circle cx="160" cy="150" r="5"/></g><g fill="#A32D2D"><circle cx="40" cy="150" r="5"/><circle cx="65" cy="150" r="5"/><circle cx="190" cy="150" r="5"/><circle cx="215" cy="150" r="5"/></g><text x="130" y="180" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#9C9B95">red · blue · red  along x</text><text x="252" y="146" font-family="sans-serif" font-size="22" fill="#6B6A66">→</text><text x="256" y="128" font-family="sans-serif" font-size="10" fill="#6B6A66">add x²</text><text x="396" y="42" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#33312E">lifted to 2-D (x, x²)</text><line x1="290" y1="255" x2="505" y2="255" stroke="#C9C8C1" stroke-width="1.2"/><line x1="290" y1="40" x2="290" y2="255" stroke="#C9C8C1" stroke-width="1.2"/><polyline points="290,45 295,65 300,84 306,102 311,119 316,135 322,150 327,163 332,176 337,188 342,199 348,208 353,217 358,225 364,232 369,237 374,242 379,245 384,248 390,249 395,250 400,249 406,248 411,245 416,242 421,237 426,232 432,225 437,217 442,208 448,199 453,188 458,176 463,163 468,150 474,135 479,119 484,102 490,84 495,65 500,45" fill="none" stroke="#D9D8D1" stroke-width="1.6"/><line x1="293" y1="199" x2="503" y2="199" stroke="#1D9E75" stroke-width="2" stroke-dasharray="6 3"/><text x="500" y="193" text-anchor="end" font-family="sans-serif" font-size="10" fill="#1D9E75">one straight line!</text><g fill="#185FA5"><circle cx="364" cy="232" r="5"/><circle cx="384" cy="248" r="5"/><circle cx="411" cy="245" r="5"/><circle cx="426" cy="232" r="5"/></g><g fill="#A32D2D"><circle cx="300" cy="84" r="5"/><circle cx="327" cy="163" r="5"/><circle cx="458" cy="176" r="5"/><circle cx="484" cy="102" r="5"/></g><text x="283" y="50" font-family="sans-serif" font-size="10" fill="#9C9B95">x²</text></svg></div>
+
+That's the whole idea: map inputs through some $\phi(\mathbf x)$ into a higher-dimensional
+space where the classes **are** linearly separable, then run the ordinary max-margin SVM
+*there*. The snag: $\phi$ can be enormous — even **infinite-dimensional** — so building it
+explicitly is hopeless.
+
+**The trick.** The SVM's optimization (in its dual form) touches the data **only through
+dot products** $\mathbf x_i\cdot\mathbf x_j$ — never the points on their own. A **kernel**
+$K(\mathbf x_i,\mathbf x_j)=\phi(\mathbf x_i)\cdot\phi(\mathbf x_j)$ returns that dot
+product in the lifted space **directly from the original vectors**, without ever
+constructing $\phi$. So you get the power of a giant feature space for the price of a tiny
+function — a non-linear boundary essentially "for free". Any $K$ that corresponds to a
+valid inner product (**Mercer's condition**) is allowed.
 
 ## 7. Common kernels
 
@@ -332,17 +401,41 @@ $K$ satisfying Mercer's condition (it must correspond to a valid inner product) 
 
 ## 8. Choosing C and γ (and scaling!)
 
-C and γ interact and are chosen together by cross-validated **grid search** (M6) — a
-classic 2-D grid over log-spaced values. **Always standardize features first:** the RBF
-kernel uses Euclidean distance, so unscaled features silently dominate. This sensitivity
-to scaling is the #1 SVM gotcha.
+An RBF SVM has **two** dials, and they interact:
+
+- **C** (§4) — how hard to punish margin violations: the bias–variance knob (large C →
+  tight fit; small C → smoother).
+- **γ** (gamma, §7) — how far each point's influence reaches. **Large γ** = short reach =
+  the boundary wiggles tightly around individual points (**overfit**); **small γ** = long
+  reach = a smooth, nearly linear boundary (**underfit**).
+
+Because the two trade off, tune them **together** with a cross-validated **grid search**
+(M6) over **log-spaced** values, e.g. C, γ ∈ {0.01, 0.1, 1, 10, 100}, keeping the pair
+with the best validation score.
+
+**Always standardize the features first.** The RBF kernel measures Euclidean distance
+$\lVert\mathbf x-\mathbf x'\rVert$, so a feature on a bigger numeric scale (income in
+dollars vs. age in years) silently dominates that distance and the others are effectively
+ignored. Rescaling to comparable ranges (e.g. `StandardScaler`) fixes it — and this
+scale-sensitivity is the **#1 SVM gotcha**. (Trees, by contrast, don't care about scale —
+M3 §6.)
 
 ## 9. Multiclass & regression
 
-SVMs are binary at heart. For $>2$ classes, libraries train **one-vs-one** or
-**one-vs-rest** and vote. The margin idea also gives **Support Vector Regression
-(SVR)**: fit a tube of half-width $\varepsilon$ around the data and penalize only points
-outside it.
+**More than two classes.** An SVM is binary at heart (one street between two sides), so
+libraries combine several:
+
+- **One-vs-rest (OvR)** — train $k$ SVMs, each "class $c$ vs. all the rest", and predict
+  the class whose boundary scores highest ($k$ models).
+- **One-vs-one (OvO)** — train one SVM for **every pair** of classes and let them vote
+  ($\binom{k}{2}$ models, each on less data; this is scikit-learn's default for `SVC`).
+
+**Regression (SVR).** The same margin idea, turned inside out: instead of a street
+*between* classes, fit a **tube of half-width $\varepsilon$ around the data**. Points
+**inside** the tube cost nothing — an "$\varepsilon$-insensitive" zone where small errors
+are ignored — and only points **outside** it are penalized. The result is the flattest
+function that stays within $\varepsilon$ of most points: the regression cousin of "only
+the border points matter".
 
 ## 10. Strengths & weaknesses
 
@@ -440,10 +533,19 @@ SVM = Lesson("svm", "SVM & kernels", _M4_THEORY, _M4_QUIZ, _M4_TASKS, _M4_REFS)
 _M5_THEORY = r"""
 ## 1. What unsupervised learning is
 
-No labels — only inputs $\mathbf x$. The goal is to **find structure**: group similar
-points (clustering), compress to fewer dimensions (dimensionality reduction), or flag
-the unusual (anomaly detection). There's no "accuracy" because there's no ground truth —
-which makes *evaluation* the hard part (§9).
+**Supervised** learning (M1–M4) trains on labeled pairs $(\mathbf x, y)$ — you hand it the
+right answers. **Unsupervised** learning gets only the inputs $\mathbf x$, with **no labels
+at all**, and must discover structure on its own. Three main jobs:
+
+- **Clustering** — group similar points together (customer segments, topics in documents).
+- **Dimensionality reduction** — squeeze many features into a few that keep most of the
+  information (for visualization, speed, or denoising).
+- **Anomaly detection** — flag the points that *don't* fit the structure (fraud, faults).
+
+The catch: with no ground-truth labels there is **no "accuracy" to optimize**, so deciding
+whether the structure you found is any *good* — and even **how many clusters exist** —
+becomes the hard part (§13). It's also how much of modern AI learns: the world has far more
+unlabeled than labeled data, so finding structure without labels is enormously valuable (§14).
 
 ## 2. k-means — objective & algorithm
 
@@ -461,76 +563,167 @@ necessarily the best one.
 
 ## 3. Initialization matters — k-means++ & restarts
 
-Because it finds a *local* optimum, the starting centroids matter. **k-means++** spreads
-the initial centroids out (each new seed chosen far from existing ones), giving much
-better, more consistent results than random init. In practice you also run several
-**restarts** and keep the lowest-inertia solution. Watch the seed change the outcome in
-the Playground.
+Because Lloyd's algorithm only reaches a **local** minimum, *where you start* changes where
+you end up. Seed two centroids inside the same true cluster and k-means can lock into a
+clearly wrong grouping and never escape. Two standard fixes:
+
+- **k-means++** — choose the starting centroids to be **spread out**: the first is random,
+  and each next seed is picked with probability proportional to its **squared distance** from
+  the nearest existing seed. This cheap trick avoids clumped starts and gives much better,
+  more consistent results (it's scikit-learn's default).
+- **Multiple restarts** — run the whole thing several times from different seeds and keep the
+  solution with the **lowest inertia** (the `n_init` setting).
+
+Together they make k-means reliable in practice. (Change the seed in the Playground and
+watch the clustering shift.)
 
 ## 4. Choosing k
 
-No label tells you the "right" k. Heuristics:
-- **Elbow method** — plot inertia vs. k; pick the "elbow" where extra clusters stop
-  helping much. (Inertia *always* falls as k rises, so you can't just minimize it.)
-- **Silhouette score** — for a point, let $a$ = mean distance to its own cluster and
-  $b$ = mean distance to the nearest *other* cluster; its silhouette is
-  $s = \dfrac{b-a}{\max(a,b)} \in [-1,1]$. Average over points; higher = better-separated.
-- **Gap statistic**, or just let a **downstream task** decide.
+k-means needs **k fixed in advance**, but no label tells you the right number. The trap:
+**inertia always falls as k rises** (more centroids ⇒ tighter clusters; at k = n it hits
+0), so you *can't* just minimize it. Instead:
+
+- **Elbow method** — plot inertia vs. k and look for the **"elbow"**, where adding another
+  cluster stops buying much. Before the elbow each new cluster captures real structure;
+  after it you're just splitting noise. Here the bend at **k = 3** matches the three true
+  blobs:
+
+<div style="text-align:center;margin:0.6rem 0"><svg viewBox="0 0 440 280" style="width:100%;max-width:440px;height:auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Elbow plot: k-means inertia drops steeply from k=1 to k=3 then flattens, so the elbow at k=3 is the suggested number of clusters."><rect x="1" y="1" width="438" height="278" rx="14" fill="#FAFAF7" stroke="#E2E2DA"/><line x1="55" y1="235" x2="425" y2="235" stroke="#C9C8C1" stroke-width="1.2"/><line x1="55" y1="40" x2="55" y2="235" stroke="#C9C8C1" stroke-width="1.2"/><line x1="160" y1="46" x2="160" y2="235" stroke="#1D9E75" stroke-width="1.3" stroke-dasharray="5 3"/><text x="160" y="38" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#1D9E75">elbow → k=3</text><polyline points="60,50 110,205 160,223 210,224 260,225 310,226 360,226 410,227" fill="none" stroke="#185FA5" stroke-width="2.4"/><g fill="#185FA5"><circle cx="60" cy="50" r="3.5"/><circle cx="110" cy="205" r="3.5"/><circle cx="160" cy="223" r="3.5"/><circle cx="210" cy="224" r="3.5"/><circle cx="260" cy="225" r="3.5"/><circle cx="310" cy="226" r="3.5"/><circle cx="360" cy="226" r="3.5"/><circle cx="410" cy="227" r="3.5"/></g><g font-family="sans-serif" font-size="10" fill="#9C9B95" text-anchor="middle"><text x="60" y="250">1</text><text x="110" y="250">2</text><text x="160" y="250">3</text><text x="210" y="250">4</text><text x="260" y="250">5</text><text x="310" y="250">6</text><text x="360" y="250">7</text><text x="410" y="250">8</text></g><text x="240" y="268" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#6B6A66">k (number of clusters)</text><text x="34" y="50" font-family="sans-serif" font-size="11" fill="#6B6A66">inertia</text></svg></div>
+
+- **Silhouette score** — for each point let $a$ = mean distance to its *own* cluster and
+  $b$ = mean distance to the *nearest other* cluster; its silhouette is
+  $s = \dfrac{b-a}{\max(a,b)} \in [-1,1]$ (near $+1$ = snug and well-separated; $0$ = on a
+  border; negative = probably in the wrong cluster). Average over all points and pick the k
+  with the highest mean — often more reliable than eyeballing the elbow.
+- **Gap statistic**, or simplest of all, let a **downstream task** decide which k is useful.
 
 ## 5. k-means limitations
 
-It assumes **spherical, similar-size** clusters and uses Euclidean distance, so it
-struggles with **elongated, uneven, or non-convex** clusters, is sensitive to outliers
-and to **feature scale** (standardize first!), and needs **k fixed in advance**. When
-these bite, reach for the alternatives below.
+k-means is fast and simple, but its built-in assumptions bite often:
+
+- **It expects round, equal-size blobs.** Inertia + Euclidean distance implicitly assume
+  **spherical clusters of similar size and density**. Elongated, crescent, or nested-ring
+  shapes get sliced the wrong way (you'll see exactly this in §7).
+- **You must choose k up front** (§4) — awkward when you don't know it.
+- **Scale-sensitive** — distances blend all features, so an unscaled large-range feature
+  dominates. **Standardize first.**
+- **Outlier-sensitive** — a single far-off point drags its centroid, because the mean
+  isn't robust.
+- **Hard, convex assignments only** — every point is 100% one cluster (no "60% A, 40% B"),
+  and regions are always convex.
+
+When these bite, the next sections give alternatives: **arbitrary shapes** (DBSCAN, §7),
+**no need to fix k** (hierarchical §6, DBSCAN §7), and **soft memberships** (GMM, §8).
 
 ## 6. Hierarchical clustering
 
-Builds a whole tree (**dendrogram**) of nested clusters. **Agglomerative**: start with
-each point as its own cluster, then repeatedly **merge the two closest** clusters under a
-*linkage* rule — **single** (nearest pair, makes chains), **complete** (farthest pair,
-compact), **average**, or **Ward** (minimize variance increase, k-means-like). Cut the
-tree at any height to read off that many clusters — **no need to fix k up front**.
+Instead of committing to one k, hierarchical clustering builds a **whole tree of nested
+groupings** called a **dendrogram**. The common **agglomerative** ("bottom-up") version:
+
+1. Start with every point as its own cluster.
+2. Repeatedly **merge the two closest clusters**.
+3. Continue until everything is one cluster — recording each merge and the **height**
+   (distance) at which it happened.
+
+"Closest" depends on the **linkage** rule: **single** (nearest pair — tends to make long
+chains), **complete** (farthest pair — compact balls), **average**, or **Ward** (the merge
+that least increases variance — behaves like k-means). The dendrogram's height is the
+distance at which two clusters joined; **cut it at any height** and you read off that many
+clusters — so you can choose k *after* seeing the structure, not before:
+
+<div style="text-align:center;margin:0.6rem 0"><svg viewBox="0 0 440 280" style="width:100%;max-width:440px;height:auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A dendrogram of six points A to F merged bottom-up at increasing distances; a dashed horizontal cut line crosses three branches, giving three clusters: A-B-C, D-E, and F."><rect x="1" y="1" width="438" height="278" rx="14" fill="#FAFAF7" stroke="#E2E2DA"/><g stroke="#33312E" stroke-width="1.8" fill="none"><path d="M60,230 V195 H120 V230"/><path d="M240,230 V190 H300 V230"/><path d="M90,195 V160 H180 V230"/><path d="M270,190 V108 H360 V230"/><path d="M135,160 V95 H315 V108"/></g><line x1="40" y1="125" x2="405" y2="125" stroke="#1D9E75" stroke-width="1.4" stroke-dasharray="6 3"/><text x="400" y="120" text-anchor="end" font-family="sans-serif" font-size="10.5" fill="#1D9E75">cut → 3 clusters</text><g font-family="sans-serif" font-size="12" fill="#33312E" text-anchor="middle"><text x="60" y="247">A</text><text x="120" y="247">B</text><text x="180" y="247">C</text><text x="240" y="247">D</text><text x="300" y="247">E</text><text x="360" y="247">F</text></g><text x="26" y="150" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#6B6A66" transform="rotate(-90 26 150)">distance →</text></svg></div>
+
+Great for small datasets and for *seeing* nested structure; the catch is it costs about
+$O(n^2)$ time and memory, so it doesn't scale to very large data.
 
 ## 7. Density-based clustering (DBSCAN)
 
-Defines clusters as **dense regions** separated by sparse gaps. Points are **core**
-(enough neighbors within radius `eps`), **border**, or **noise/outliers**. DBSCAN finds
-**arbitrarily shaped** clusters and **doesn't need k**, but is sensitive to `eps` /
-`min_samples` and struggles when densities vary.
+DBSCAN takes a completely different view: a cluster is a **dense region** of points, set
+off from others by **sparser gaps**. With two settings — a radius `eps` and a count
+`min_samples` — it labels each point:
+
+- **core** — has at least `min_samples` neighbors within `eps` (deep inside a dense region);
+- **border** — within `eps` of a core point, but not dense itself;
+- **noise** — neither, i.e. an **outlier** (DBSCAN happily leaves points unassigned).
+
+Clusters then grow by chaining neighboring core points together. The payoffs are big: it
+finds **arbitrarily shaped** clusters, **doesn't need k**, and **flags outliers** for
+free. Below it cleanly separates two interleaved crescents that k-means — which can only
+cut a **straight** boundary between its two centroids — gets completely wrong:
+
+<div style="text-align:center;margin:0.6rem 0"><svg viewBox="0 0 520 280" style="width:100%;max-width:520px;height:auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two interleaving crescent clusters. Left: k-means with k=2 splits them with a straight cut and mixes the crescents. Right: DBSCAN follows the density and recovers the two crescents correctly."><rect x="1" y="1" width="518" height="278" rx="14" fill="#FAFAF7" stroke="#E2E2DA"/><text x="135" y="22" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#A32D2D">k-means (k=2) — straight cut, wrong</text><text x="392" y="22" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#1D9E75">DBSCAN — follows the shapes</text><g fill="#185FA5"><circle cx="201" cy="158" r="3.6"/><circle cx="145" cy="116" r="3.6"/><circle cx="219" cy="129" r="3.6"/><circle cx="160" cy="215" r="3.6"/><circle cx="149" cy="209" r="3.6"/><circle cx="209" cy="139" r="3.6"/><circle cx="186" cy="193" r="3.6"/><circle cx="151" cy="118" r="3.6"/><circle cx="194" cy="181" r="3.6"/><circle cx="174" cy="208" r="3.6"/><circle cx="141" cy="114" r="3.6"/><circle cx="154" cy="139" r="3.6"/><circle cx="165" cy="201" r="3.6"/><circle cx="139" cy="214" r="3.6"/><circle cx="151" cy="132" r="3.6"/><circle cx="140" cy="106" r="3.6"/><circle cx="191" cy="176" r="3.6"/><circle cx="169" cy="209" r="3.6"/><circle cx="153" cy="214" r="3.6"/><circle cx="121" cy="193" r="3.6"/><circle cx="182" cy="201" r="3.6"/><circle cx="135" cy="220" r="3.6"/><circle cx="117" cy="179" r="3.6"/><circle cx="201" cy="168" r="3.6"/><circle cx="158" cy="226" r="3.6"/><circle cx="212" cy="145" r="3.6"/><circle cx="200" cy="164" r="3.6"/><circle cx="196" cy="186" r="3.6"/><circle cx="195" cy="200" r="3.6"/><circle cx="211" cy="138" r="3.6"/><circle cx="148" cy="111" r="3.6"/><circle cx="130" cy="197" r="3.6"/><circle cx="123" cy="202" r="3.6"/><circle cx="214" cy="130" r="3.6"/><circle cx="156" cy="160" r="3.6"/><circle cx="124" cy="205" r="3.6"/><circle cx="140" cy="198" r="3.6"/><circle cx="151" cy="151" r="3.6"/><circle cx="153" cy="220" r="3.6"/><circle cx="206" cy="158" r="3.6"/><circle cx="137" cy="109" r="3.6"/><circle cx="181" cy="203" r="3.6"/><circle cx="147" cy="170" r="3.6"/><circle cx="174" cy="203" r="3.6"/><circle cx="153" cy="147" r="3.6"/></g><g fill="#A32D2D"><circle cx="90" cy="67" r="3.6"/><circle cx="111" cy="189" r="3.6"/><circle cx="42" cy="150" r="3.6"/><circle cx="106" cy="152" r="3.6"/><circle cx="107" cy="178" r="3.6"/><circle cx="137" cy="89" r="3.6"/><circle cx="118" cy="71" r="3.6"/><circle cx="107" cy="182" r="3.6"/><circle cx="47" cy="130" r="3.6"/><circle cx="57" cy="91" r="3.6"/><circle cx="128" cy="90" r="3.6"/><circle cx="98" cy="128" r="3.6"/><circle cx="92" cy="69" r="3.6"/><circle cx="105" cy="165" r="3.6"/><circle cx="101" cy="124" r="3.6"/><circle cx="99" cy="131" r="3.6"/><circle cx="62" cy="89" r="3.6"/><circle cx="60" cy="109" r="3.6"/><circle cx="119" cy="85" r="3.6"/><circle cx="82" cy="78" r="3.6"/><circle cx="48" cy="112" r="3.6"/><circle cx="53" cy="118" r="3.6"/><circle cx="110" cy="66" r="3.6"/><circle cx="74" cy="85" r="3.6"/><circle cx="99" cy="164" r="3.6"/><circle cx="74" cy="77" r="3.6"/><circle cx="46" cy="125" r="3.6"/><circle cx="97" cy="136" r="3.6"/><circle cx="121" cy="87" r="3.6"/><circle cx="57" cy="99" r="3.6"/><circle cx="41" cy="162" r="3.6"/><circle cx="69" cy="85" r="3.6"/><circle cx="100" cy="153" r="3.6"/><circle cx="97" cy="73" r="3.6"/><circle cx="88" cy="75" r="3.6"/><circle cx="125" cy="71" r="3.6"/><circle cx="44" cy="131" r="3.6"/><circle cx="43" cy="160" r="3.6"/><circle cx="113" cy="76" r="3.6"/><circle cx="52" cy="128" r="3.6"/><circle cx="41" cy="141" r="3.6"/><circle cx="115" cy="77" r="3.6"/><circle cx="102" cy="94" r="3.6"/><circle cx="115" cy="184" r="3.6"/><circle cx="89" cy="64" r="3.6"/></g><g fill="#185FA5"><circle cx="461" cy="158" r="3.6"/><circle cx="479" cy="129" r="3.6"/><circle cx="420" cy="215" r="3.6"/><circle cx="371" cy="189" r="3.6"/><circle cx="409" cy="209" r="3.6"/><circle cx="469" cy="139" r="3.6"/><circle cx="446" cy="193" r="3.6"/><circle cx="366" cy="152" r="3.6"/><circle cx="454" cy="181" r="3.6"/><circle cx="367" cy="178" r="3.6"/><circle cx="434" cy="208" r="3.6"/><circle cx="425" cy="201" r="3.6"/><circle cx="399" cy="214" r="3.6"/><circle cx="367" cy="182" r="3.6"/><circle cx="358" cy="128" r="3.6"/><circle cx="365" cy="165" r="3.6"/><circle cx="361" cy="124" r="3.6"/><circle cx="359" cy="131" r="3.6"/><circle cx="451" cy="176" r="3.6"/><circle cx="429" cy="209" r="3.6"/><circle cx="413" cy="214" r="3.6"/><circle cx="381" cy="193" r="3.6"/><circle cx="442" cy="201" r="3.6"/><circle cx="395" cy="220" r="3.6"/><circle cx="377" cy="179" r="3.6"/><circle cx="461" cy="168" r="3.6"/><circle cx="418" cy="226" r="3.6"/><circle cx="472" cy="145" r="3.6"/><circle cx="460" cy="164" r="3.6"/><circle cx="456" cy="186" r="3.6"/><circle cx="359" cy="164" r="3.6"/><circle cx="455" cy="200" r="3.6"/><circle cx="357" cy="136" r="3.6"/><circle cx="471" cy="138" r="3.6"/><circle cx="390" cy="197" r="3.6"/><circle cx="383" cy="202" r="3.6"/><circle cx="474" cy="130" r="3.6"/><circle cx="360" cy="153" r="3.6"/><circle cx="384" cy="205" r="3.6"/><circle cx="400" cy="198" r="3.6"/><circle cx="413" cy="220" r="3.6"/><circle cx="466" cy="158" r="3.6"/><circle cx="441" cy="203" r="3.6"/><circle cx="434" cy="203" r="3.6"/><circle cx="375" cy="184" r="3.6"/></g><g fill="#A32D2D"><circle cx="405" cy="116" r="3.6"/><circle cx="350" cy="67" r="3.6"/><circle cx="302" cy="150" r="3.6"/><circle cx="411" cy="118" r="3.6"/><circle cx="397" cy="89" r="3.6"/><circle cx="401" cy="114" r="3.6"/><circle cx="414" cy="139" r="3.6"/><circle cx="378" cy="71" r="3.6"/><circle cx="307" cy="130" r="3.6"/><circle cx="317" cy="91" r="3.6"/><circle cx="411" cy="132" r="3.6"/><circle cx="388" cy="90" r="3.6"/><circle cx="352" cy="69" r="3.6"/><circle cx="400" cy="106" r="3.6"/><circle cx="322" cy="89" r="3.6"/><circle cx="320" cy="109" r="3.6"/><circle cx="379" cy="85" r="3.6"/><circle cx="342" cy="78" r="3.6"/><circle cx="308" cy="112" r="3.6"/><circle cx="313" cy="118" r="3.6"/><circle cx="370" cy="66" r="3.6"/><circle cx="334" cy="85" r="3.6"/><circle cx="334" cy="77" r="3.6"/><circle cx="306" cy="125" r="3.6"/><circle cx="381" cy="87" r="3.6"/><circle cx="317" cy="99" r="3.6"/><circle cx="301" cy="162" r="3.6"/><circle cx="408" cy="111" r="3.6"/><circle cx="329" cy="85" r="3.6"/><circle cx="416" cy="160" r="3.6"/><circle cx="411" cy="151" r="3.6"/><circle cx="357" cy="73" r="3.6"/><circle cx="348" cy="75" r="3.6"/><circle cx="385" cy="71" r="3.6"/><circle cx="304" cy="131" r="3.6"/><circle cx="303" cy="160" r="3.6"/><circle cx="373" cy="76" r="3.6"/><circle cx="312" cy="128" r="3.6"/><circle cx="397" cy="109" r="3.6"/><circle cx="301" cy="141" r="3.6"/><circle cx="375" cy="77" r="3.6"/><circle cx="362" cy="94" r="3.6"/><circle cx="407" cy="170" r="3.6"/><circle cx="413" cy="147" r="3.6"/><circle cx="349" cy="64" r="3.6"/></g></svg></div>
+
+The price: results depend on `eps` / `min_samples`, and a single `eps` struggles when
+different clusters have **very different densities**.
 
 ## 8. Soft clustering — Gaussian Mixture Models
 
-A **GMM** models the data as a mixture of Gaussians and gives each point a **soft**
-membership (responsibility) per cluster, fit by **Expectation–Maximization (EM)** —
-alternate "estimate responsibilities" and "update Gaussian parameters". k-means is the
-hard-assignment, equal-spherical-covariance limit of a GMM.
+k-means gives **hard** assignments — each point is 100% in one cluster. A **Gaussian
+Mixture Model (GMM)** is the **soft** version: it models the data as a blend of several
+**Gaussian "blobs"**, each with its own centre **and shape and orientation** (a full
+covariance, so clusters can be **stretched, tilted ellipses**, not just circles). Every
+point gets a **responsibility** — e.g. "70% cluster A, 30% cluster B" — instead of a single
+hard label.
+
+It's fit by **Expectation–Maximization (EM)**, the soft cousin of Lloyd's algorithm:
+
+- **E-step** — given the current Gaussians, compute each point's responsibilities.
+- **M-step** — given those responsibilities, update each Gaussian's mean, covariance and weight.
+
+Repeat to convergence. In fact **k-means is just the special case** of a GMM with hard
+assignments and equal spherical covariances — so a GMM handles elliptical, overlapping
+clusters that k-means can't, and attaches a probability to every assignment.
 
 ## 9. Dimensionality reduction — why
 
-High dimensions hurt: the **curse of dimensionality** (data gets sparse, distances lose
-meaning), you can't **visualize** beyond 3-D, and storage/compute balloon. Reduction
-finds a smaller set of features that keeps most of the information — for visualization,
-compression, **denoising**, and as preprocessing for other models.
+Real data often has **hundreds or thousands of features**, and that hurts three ways:
+
+- **The curse of dimensionality** — in high dimensions data becomes sparse and *all*
+  pairwise distances look almost equal, so "nearest neighbor" and clustering lose meaning.
+- **You can't see it** — humans can't picture beyond 3-D, so any visual exploration needs a
+  2-D or 3-D view.
+- **Cost & noise** — more features mean more storage, slower training, and more chances to
+  overfit on redundant or irrelevant columns.
+
+**Dimensionality reduction** finds a smaller set of features — new *combinations* of the
+originals — that keeps most of the information. Uses: **visualization**, **compression**,
+**denoising**, and **preprocessing** that speeds up and stabilizes the models downstream.
 
 ## 10. PCA, made precise
 
-The workhorse linear method. Center the data, form the covariance matrix
-$C = \tfrac1n X^\top X$; its **eigenvectors** are the **principal components** (the
-orthogonal directions of maximum variance), ordered by eigenvalue $\lambda_i$.
-Equivalently, take the **SVD** $X = U\Sigma V^\top$ — the columns of $V$ are the
-components. Project onto the top few. The **explained-variance ratio**
-$\lambda_i / \sum_j \lambda_j$ says how much information each keeps; choose enough
-components to reach (say) 95% cumulative variance (read it off a **scree plot**).
-Standardize first so large-scale features don't dominate. *(This is the Math module's
-eigen/SVD/projection in action.)*
+**Principal Component Analysis** is the workhorse linear method. The idea: find the
+directions along which the data **varies the most**, and keep just those.
+
+1. **Center** the data (subtract each feature's mean).
+2. Form the **covariance matrix** $C = \tfrac1n X^\top X$.
+3. Its **eigenvectors** are the **principal components** — orthogonal directions of maximum
+   variance — ordered by eigenvalue $\lambda_i$ (the variance along each). Equivalently take
+   the **SVD** $X = U\Sigma V^\top$; the columns of $V$ are the components.
+4. **Project** the data onto the top few components.
+
+PC1 is the single direction with the most spread; PC2 is the most-spread direction
+*perpendicular* to PC1, and so on:
+
+<div style="text-align:center;margin:0.6rem 0"><svg viewBox="0 0 360 300" style="width:100%;max-width:360px;height:auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A tilted 2-D point cloud with its principal components drawn as axes through the centroid: PC1 is the long axis along the direction of greatest spread (95% of the variance), PC2 the short perpendicular axis (5%)."><defs><marker id="pcah" markerWidth="8" markerHeight="8" refX="4" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 z" fill="#33312E"/></marker><marker id="pcah2" markerWidth="8" markerHeight="8" refX="4" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 z" fill="#9A6A2A"/></marker></defs><rect x="1" y="1" width="358" height="298" rx="14" fill="#FAFAF7" stroke="#E2E2DA"/><g fill="#185FA5"><circle cx="169" cy="157" r="3.4"/><circle cx="187" cy="176" r="3.4"/><circle cx="147" cy="175" r="3.4"/><circle cx="209" cy="136" r="3.4"/><circle cx="172" cy="162" r="3.4"/><circle cx="185" cy="151" r="3.4"/><circle cx="224" cy="138" r="3.4"/><circle cx="206" cy="138" r="3.4"/><circle cx="191" cy="159" r="3.4"/><circle cx="227" cy="137" r="3.4"/><circle cx="192" cy="158" r="3.4"/><circle cx="126" cy="180" r="3.4"/><circle cx="324" cy="101" r="3.4"/><circle cx="202" cy="155" r="3.4"/><circle cx="179" cy="159" r="3.4"/><circle cx="108" cy="220" r="3.4"/><circle cx="190" cy="128" r="3.4"/><circle cx="157" cy="167" r="3.4"/><circle cx="227" cy="156" r="3.4"/><circle cx="182" cy="159" r="3.4"/><circle cx="250" cy="129" r="3.4"/><circle cx="202" cy="162" r="3.4"/><circle cx="194" cy="152" r="3.4"/><circle cx="193" cy="161" r="3.4"/><circle cx="157" cy="163" r="3.4"/><circle cx="184" cy="171" r="3.4"/><circle cx="163" cy="179" r="3.4"/><circle cx="161" cy="188" r="3.4"/><circle cx="151" cy="180" r="3.4"/><circle cx="247" cy="126" r="3.4"/><circle cx="186" cy="155" r="3.4"/><circle cx="243" cy="140" r="3.4"/><circle cx="186" cy="165" r="3.4"/><circle cx="174" cy="155" r="3.4"/><circle cx="260" cy="110" r="3.4"/><circle cx="140" cy="190" r="3.4"/><circle cx="219" cy="128" r="3.4"/><circle cx="172" cy="154" r="3.4"/><circle cx="218" cy="159" r="3.4"/><circle cx="199" cy="157" r="3.4"/><circle cx="155" cy="174" r="3.4"/><circle cx="272" cy="123" r="3.4"/><circle cx="146" cy="173" r="3.4"/><circle cx="218" cy="139" r="3.4"/><circle cx="167" cy="163" r="3.4"/><circle cx="150" cy="176" r="3.4"/><circle cx="197" cy="155" r="3.4"/><circle cx="164" cy="203" r="3.4"/><circle cx="196" cy="152" r="3.4"/><circle cx="250" cy="115" r="3.4"/><circle cx="211" cy="131" r="3.4"/><circle cx="190" cy="146" r="3.4"/><circle cx="134" cy="184" r="3.4"/><circle cx="241" cy="146" r="3.4"/><circle cx="115" cy="202" r="3.4"/><circle cx="219" cy="136" r="3.4"/><circle cx="192" cy="143" r="3.4"/><circle cx="189" cy="156" r="3.4"/><circle cx="218" cy="133" r="3.4"/><circle cx="230" cy="123" r="3.4"/></g><line x1="286" y1="103" x2="99" y2="208" stroke="#33312E" stroke-width="2.6" marker-start="url(#pcah)" marker-end="url(#pcah)"/><line x1="177" y1="138" x2="209" y2="173" stroke="#9A6A2A" stroke-width="2.4" marker-start="url(#pcah2)" marker-end="url(#pcah2)"/><circle cx="193" cy="155" r="3" fill="#33312E"/><text x="96" y="223" font-family="sans-serif" font-size="11.5" fill="#33312E">PC1 (95% var)</text><text x="214" y="182" font-family="sans-serif" font-size="11.5" fill="#9A6A2A">PC2 (5%)</text></svg></div>
+
+The **explained-variance ratio** $\lambda_i/\sum_j\lambda_j$ says how much each component
+keeps — here PC1 alone holds 95%, so projecting onto it loses almost nothing. Pick enough
+components to reach, say, **95% cumulative** variance (read it off a *scree plot*).
+Standardize first so large-scale features don't hijack the variance. *(This is the Math
+module's eigenvectors / SVD / projection in action.)*
 
 ## 11. Non-linear embeddings — t-SNE & UMAP
 
-For **visualization**, t-SNE and UMAP map high-dim data to 2-D while preserving *local*
-neighborhoods, revealing clusters PCA might hide. Caveats: cluster **sizes and distances
-between clusters aren't meaningful**, results vary with hyperparameters/seed, and they're
-for *looking*, not as model features.
+PCA is **linear**, so it can flatten curved structure together. **t-SNE** and **UMAP** are
+non-linear methods built for **visualization**: they map high-dim data down to 2-D while
+trying to keep **neighbors close** — points near each other stay near — which reveals
+clusters that PCA might hide. These produce the striking 2-D "maps" you see of image and
+word datasets.
+
+Read them with care:
+- the **size** of a cluster and the **distance between** clusters are **not meaningful**;
+- results **shift** with the hyperparameters (perplexity / `n_neighbors`) and the seed;
+- they're for **looking**, not as features fed into another model — use PCA for that.
 
 ## 12. Anomaly detection
 
@@ -540,10 +733,14 @@ low-density region (DBSCAN noise), low GMM likelihood, or via dedicated methods
 
 ## 13. Evaluating without labels
 
-No accuracy. Use **internal** indices (inertia, **silhouette**, Davies–Bouldin),
-**stability** across runs/subsamples, or — most honestly — the **downstream task** the
-structure feeds (do the segments improve targeting? do the PCA features help the
-classifier?). Usefulness, not a single number, is the real test.
+With no ground truth there's no accuracy, so judge the structure three ways:
+
+- **Internal indices** — score the geometry itself: **inertia**, the **silhouette** (§4),
+  Davies–Bouldin. Cheap, but they tend to reward k-means-shaped clusters.
+- **Stability** — re-run on bootstraps / subsamples / different seeds; structure that's
+  *real* reappears, structure that's noise doesn't.
+- **The downstream task** (most honest) — do the segments improve targeting? do the PCA
+  features help the classifier? **Usefulness**, not a single number, is the real test.
 
 ## 14. Where it connects
 
