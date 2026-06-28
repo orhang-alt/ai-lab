@@ -15,9 +15,12 @@ st.caption("From a single neuron to a small GPT — one growing library, many ex
 # --------------------------------------------------------------------------- #
 st.subheader("📚 Learning roadmap — a single neuron → a GPT")
 st.markdown(
-    "Five levels, **basics to frontier**. Work top to bottom — each builds on the last. "
-    "**Click any step to open it.** New to the maths? The **Math (X1–X6)** and **ML (M0–M8)** "
-    "tracks in the sidebar's **Module** switcher are the parallel foundations."
+    "Five levels, **basics to frontier** — work top to bottom; each builds on the last and "
+    "**clicking any step opens it**.\n\n"
+    "The lab has **three tracks** (switch with the sidebar **Module** selector): **ANN** — "
+    "this path, a single neuron → a GPT · **ML** — classical machine learning (M0–M8) · "
+    "**Math** — the foundations (X1–X6) you *dip into as needed*. Each level flags the math "
+    "it leans on."
 )
 st.page_link("views/the_chain.py", label="Start with the big picture — how it all connects",
              icon=":material/route:")
@@ -29,7 +32,8 @@ ROADMAP = [
      "arithmetic. This is the atom everything else is built from.",
      [("views/playground.py", "Neuron playground", ":material/tune:"),
       ("views/two_neurons.py", "Two neurons", ":material/hub:"),
-      ("views/neurons_compute.py", "Neurons → computer", ":material/calculate:")]),
+      ("views/neurons_compute.py", "Neurons → computer", ":material/calculate:")],
+     "**X1** vectors & the dot product — a neuron *is* a dot product."),
 
     ("Level 2 · How a network learns — training",
      "The engine of deep learning: **backprop** finds a gradient for every weight, an "
@@ -39,14 +43,16 @@ ROADMAP = [
       ("views/mlp.py", "MLP (train it)", ":material/network_node:"),
       ("views/optimizers.py", "Optimizers", ":material/trending_down:"),
       ("views/deep_playground.py", "Deep nets (2D)", ":material/blur_on:"),
-      ("views/regularization.py", "Regularization", ":material/tune:")]),
+      ("views/regularization.py", "Regularization", ":material/tune:")],
+     "**X2** calculus & the chain rule (backprop) · **X4** optimization (the optimizers)."),
 
     ("Level 3 · Architectures — images & sequences",
      "Wiring matched to the data: **convolutions** share a small filter across an image "
      "(**CNN**); **recurrence** carries a hidden state across a sequence (**RNN**). The RNN's "
      "memory limits are exactly what motivates attention next.",
      [("views/cnn.py", "CNN (images)", ":material/image:"),
-      ("views/rnn.py", "RNN (sequences)", ":material/repeat:")]),
+      ("views/rnn.py", "RNN (sequences)", ":material/repeat:")],
+     "**X1** dot products (convolution) · **X2** gradients through time (BPTT)."),
 
     ("Level 4 · Attention & Transformers",
      "The leap to modern AI: text becomes **tokens**, **self-attention** lets every token "
@@ -54,7 +60,8 @@ ROADMAP = [
      "**next token** — a tiny **GPT** you can run right here.",
      [("views/tokenization.py", "Tokenization", ":material/content_cut:"),
       ("views/attention.py", "Attention (LLMs)", ":material/auto_awesome:"),
-      ("views/transformer.py", "Tiny GPT", ":material/smart_toy:")]),
+      ("views/transformer.py", "Tiny GPT", ":material/smart_toy:")],
+     "**X1** dot product = similarity · **X5** softmax."),
 
     ("Level 5 · LLMs in practice",
      "From a base model to a useful assistant: **decoding** turns probabilities into text, "
@@ -63,10 +70,11 @@ ROADMAP = [
      [("views/sampling.py", "Decoding (sampling)", ":material/casino:"),
       ("views/embeddings.py", "Embeddings & RAG", ":material/database:"),
       ("views/posttraining.py", "Post-training (RLHF)", ":material/psychology:"),
-      ("views/experiments.py", "Experiments (e21 nanoGPT)", ":material/science:")]),
+      ("views/experiments.py", "Experiments (e21 nanoGPT)", ":material/science:")],
+     "**X5** cross-entropy & KL (training, decoding, alignment) · **X1** cosine similarity (RAG)."),
 ]
 
-for title, intro, items in ROADMAP:
+for title, intro, items, math in ROADMAP:
     with st.container(border=True):
         st.markdown(f"#### {title}")
         st.markdown(intro)
@@ -76,6 +84,7 @@ for title, intro, items in ROADMAP:
             cols = st.columns(3)
             for col, (path, label, icon) in zip(cols, row):
                 col.page_link(path, label=label, icon=icon)
+        st.caption("➕ **Math you'll lean on:** " + math + "  *(Math module in the sidebar)*")
 
 st.divider()
 

@@ -9,40 +9,77 @@ st.title("🧮 Machine Learning")
 st.caption("Classical ML — same approach as the ANN module: theory + interactive playground + "
            "self-check + tasks + references, one topic at a time.")
 
-st.info("The full M0–M7 curriculum is built — pick any module in the sidebar. "
-        "M0–M6 all include interactive playgrounds (M7 is reference).",
-        icon=":material/rocket_launch:")
+st.subheader("📚 ML roadmap — foundations → doing it for real")
+st.markdown(
+    "Five levels, **basics to practice** — work top to bottom; **click any step to open it**. "
+    "This is the **ML track**; the **ANN** track (single neuron → GPT) and the **Math (X1–X6)** "
+    "foundations are in the sidebar **Module** selector. Every module below has an interactive "
+    "playground (M7 is reference)."
+)
 
-st.subheader("Roadmap")
-st.markdown(r"""
-- **M0 — Foundations** ✅ *(Foundations lesson built)* — what ML is; supervised vs.
-  unsupervised; the train / validation / test split; bias–variance; over/underfitting.
-- **M1 — Regression** ✅ *(Regression playground built)* — linear regression
-  (least squares + gradient descent), polynomial features, ridge / lasso, R².
-- **M2 — Classification** ✅ *(Classification playground built)* — logistic regression
-  (the sigmoid neuron), decision boundaries, the threshold, and metrics (accuracy,
-  precision / recall, F1, ROC–AUC, confusion matrix). Next: k-NN, naive Bayes.
-- **M3 — Trees & ensembles** ✅ — decision trees, random forests, gradient boosting
-  (with an interactive depth → overfitting playground).
-- **M4 — SVM & kernels** ✅ — max-margin classifiers, support vectors, the kernel trick
-  (interactive linear-vs-RBF boundary on XOR).
-- **M5 — Unsupervised** ✅ — k-means (interactive), hierarchical clustering, PCA, t-SNE / UMAP.
-- **M6 — Model selection** ✅ — cross-validation, hyperparameter search, regularization,
-  pipelines, data leakage (interactive k-fold validation curve).
-- **M7 — Practical ML** ✅ — feature engineering, scaling, missing data, imbalance,
-  leakage, scikit-learn end-to-end.
-""")
+ROADMAP = [
+    ("Level 1 · Foundations",
+     "What machine learning *is*, and the ideas every model shares: supervised vs. unsupervised, "
+     "the **train / validation / test** split, **bias–variance**, and **over/underfitting**. "
+     "Start here — it frames everything else.",
+     [("views/ml_foundations.py", "M0 · Foundations", ":material/school:")],
+     "**X3** probability & statistics (bias–variance, noise)."),
+
+    ("Level 2 · Supervised learning — learn from labelled examples",
+     "Predict an output from inputs given labelled data: **regression** (numbers), "
+     "**classification** (categories), then two families that go non-linear — **trees & "
+     "ensembles** and **SVMs & kernels**. The bread and butter of applied ML.",
+     [("views/ml_regression.py", "M1 · Regression", ":material/timeline:"),
+      ("views/ml_classification.py", "M2 · Classification", ":material/scatter_plot:"),
+      ("views/ml_trees.py", "M3 · Trees & ensembles", ":material/account_tree:"),
+      ("views/ml_svm.py", "M4 · SVM & kernels", ":material/linear_scale:")],
+     "**X1** vectors / dot product · **X2** gradient descent · **X5** cross-entropy."),
+
+    ("Level 3 · Unsupervised learning — structure without labels",
+     "No labels — just find the structure: **clustering** (k-means, hierarchical, DBSCAN) and "
+     "**dimensionality reduction** (PCA, t-SNE). How you discover groups and compress features.",
+     [("views/ml_unsupervised.py", "M5 · Unsupervised", ":material/bubble_chart:")],
+     "**X1** vectors, eigenvectors & SVD (PCA)."),
+
+    ("Level 4 · Evaluating & choosing models",
+     "How to pick a model *honestly*: **cross-validation**, **hyperparameter search**, "
+     "**regularization**, **pipelines**, and the cardinal sin of **data leakage**. This is what "
+     "separates a real result from a fooled-yourself one.",
+     [("views/ml_model_selection.py", "M6 · Model selection", ":material/checklist:")],
+     "**X3** sampling & variance of estimates."),
+
+    ("Level 5 · Practical ML & doing it in Python",
+     "The unglamorous craft that decides whether a project works: **feature engineering**, "
+     "**scaling**, **missing data**, **imbalanced classes**, leakage — then assembling it all "
+     "**end-to-end in scikit-learn** with live, runnable examples.",
+     [("views/ml_practical.py", "M7 · Practical ML", ":material/build:"),
+      ("views/ml_python.py", "M8 · ML in Python", ":material/code:")],
+     "**X6** numerics · **X1** scaling & norms."),
+]
+
+for title, intro, items, math in ROADMAP:
+    with st.container(border=True):
+        st.markdown(f"#### {title}")
+        st.markdown(intro)
+        for i in range(0, len(items), 3):
+            row = items[i:i + 3]
+            cols = st.columns(3)
+            for col, (path, label, icon) in zip(cols, row):
+                col.page_link(path, label=label, icon=icon)
+        st.caption("➕ **Math you'll lean on:** " + math + "  *(Math module in the sidebar)*")
+
+st.divider()
 
 st.subheader("Where ML meets ANN")
 st.markdown(r"""
-The two modules are not separate worlds — they meet at the single neuron:
+The two tracks are not separate worlds — they meet at the **single neuron**:
 
 | single neuron | + loss | = classical model |
 |---|---|---|
 | linear activation | MSE | **linear regression** (M1) |
 | sigmoid activation | cross-entropy | **logistic regression** (M2) |
 
-So everything you learned about weights, bias, and activations in the **ANN**
-module pays off directly here. Switch modules anytime with the selector at the top
+So everything you learn about weights, bias, and activations in the **ANN** module pays off
+directly here — and vice-versa. Switch tracks anytime with the **Module** selector at the top
 of the sidebar.
 """)
