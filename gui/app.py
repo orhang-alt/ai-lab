@@ -32,6 +32,8 @@ ANN_PAGES = [
     st.Page("views/backprop.py", title="Backprop", icon=":material/sync_alt:"),
     st.Page("views/mlp.py", title="MLP (train it)", icon=":material/network_node:"),
     st.Page("views/optimizers.py", title="Optimizers", icon=":material/trending_down:"),
+    st.Page("views/deep_playground.py", title="Deep nets (2D)", icon=":material/blur_on:"),
+    st.Page("views/regularization.py", title="Regularization", icon=":material/tune:"),
     st.Page("views/neurons_compute.py", title="Neurons → computer", icon=":material/calculate:"),
     st.Page("views/the_chain.py", title="The big picture", icon=":material/route:"),
     st.Page("views/attention.py", title="Attention (LLMs)", icon=":material/auto_awesome:"),
