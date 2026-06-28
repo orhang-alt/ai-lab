@@ -83,7 +83,7 @@ def render_lesson_content(lesson) -> None:
     """Render the 4 standard content tabs for a lesson (no interactive playground)."""
     t1, t2, t3, t4 = st.tabs(["📖 Theory", "❓ Self-check", "🛠 Tasks", "📚 References"])
     with t1:
-        st.markdown(lesson.theory)
+        st.markdown(lesson.theory, unsafe_allow_html=True)
     with t2:
         st.subheader("Self-check")
         st.caption("Instant feedback, no grading.")

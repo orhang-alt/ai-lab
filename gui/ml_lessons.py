@@ -31,6 +31,12 @@ truth). We summarize all residuals into one number, the **mean squared error**:
 
 $$ \text{MSE} = \frac1m\sum_{i=1}^{m}(\hat y_i - y_i)^2 . $$
 
+Picture it: the line is the model, and each **pink segment is one residual** — the
+vertical gap to a data point. MSE is the **average of the squares** of those gaps, so
+fitting = choosing the line that makes the pink segments as short as possible overall.
+
+<div style="text-align:center;margin:0.6rem 0"><svg viewBox="0 0 480 320" style="width:100%;max-width:470px;height:auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Scatter of eight data points with the best-fit straight line; each pink vertical segment is a residual, the gap between a point and the line."><rect x="1" y="1" width="478" height="318" rx="14" fill="#FAFAF7" stroke="#E2E2DA"/><line x1="60" y1="270" x2="445" y2="270" stroke="#C9C8C1" stroke-width="1.2"/><line x1="60" y1="270" x2="60" y2="45" stroke="#C9C8C1" stroke-width="1.2"/><g stroke="#C0507A" stroke-width="1.8"><line x1="102" y1="194" x2="102" y2="208"/><line x1="144" y1="216" x2="144" y2="193"/><line x1="187" y1="158" x2="187" y2="177"/><line x1="229" y1="187" x2="229" y2="161"/><line x1="271" y1="121" x2="271" y2="145"/><line x1="313" y1="150" x2="313" y2="129"/><line x1="356" y1="89" x2="356" y2="113"/><line x1="398" y1="106" x2="398" y2="97"/></g><line x1="77" y1="218" x2="423" y2="87" stroke="#33312E" stroke-width="2.5"/><g fill="#185FA5"><circle cx="102" cy="194" r="5"/><circle cx="144" cy="216" r="5"/><circle cx="187" cy="158" r="5"/><circle cx="229" cy="187" r="5"/><circle cx="271" cy="121" r="5"/><circle cx="313" cy="150" r="5"/><circle cx="356" cy="89" r="5"/><circle cx="398" cy="106" r="5"/></g><text x="436" y="287" font-family="sans-serif" font-size="13" fill="#9C9B95">x</text><text x="44" y="52" font-family="sans-serif" font-size="13" fill="#9C9B95">y</text><g font-family="sans-serif" font-size="12"><circle cx="250" cy="40" r="5" fill="#185FA5"/><text x="260" y="44" fill="#0C447C">data</text><line x1="300" y1="40" x2="324" y2="40" stroke="#33312E" stroke-width="2.5"/><text x="330" y="44" fill="#33312E">fit ŷ</text><line x1="372" y1="32" x2="372" y2="48" stroke="#C0507A" stroke-width="1.8"/><text x="380" y="44" fill="#C0507A">residual</text></g></svg></div>
+
 Why *squared* (not absolute)? It is smooth/differentiable (nice gradients), it is the
 **maximum-likelihood** choice under Gaussian noise, and as a function of $w, b$ it is a
 single **convex bowl** — so there is **one global minimum** and no local-minimum traps.
@@ -64,8 +70,13 @@ $$ \nabla_{\mathbf w}\,\text{MSE} = \tfrac{2}{m}\,X^\top(\hat y - y), $$
 
 and you step downhill:
 
-$$ \mathbf w \leftarrow \mathbf w - \eta\,\tfrac1m X^\top(\hat y - y), \qquad
-   b \leftarrow b - \eta\,\tfrac1m\textstyle\sum_i(\hat y_i - y_i). $$
+$$ \mathbf w \leftarrow \mathbf w - \eta\,\tfrac1m X^\top(\hat y - y), \qquad b \leftarrow b - \eta\,\tfrac1m\textstyle\sum_i(\hat y_i - y_i). $$
+
+Because the MSE is a **convex bowl**, "downhill" always leads to the one global
+minimum. Each step moves $w$ against the slope (gradient); steps are **big when far
+out, small near the bottom** — so it glides in and settles at the best fit $w^\*$:
+
+<div style="text-align:center;margin:0.6rem 0"><svg viewBox="0 0 480 320" style="width:100%;max-width:470px;height:auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The mean squared error drawn as a convex bowl over the weight w; gradient descent takes steps downhill, large when far away and small near the bottom, converging at the minimum."><defs><marker id="gdah" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#9A6A2A"/></marker></defs><rect x="1" y="1" width="478" height="318" rx="14" fill="#FAFAF7" stroke="#E2E2DA"/><line x1="55" y1="275" x2="448" y2="275" stroke="#C9C8C1" stroke-width="1.2"/><line x1="55" y1="275" x2="55" y2="45" stroke="#C9C8C1" stroke-width="1.2"/><polyline points="60,142 70,154 79,166 88,177 98,187 108,196 117,204 126,212 136,219 146,226 155,231 164,236 174,240 184,243 193,246 202,248 212,249 222,249 231,249 240,248 250,246 260,244 269,240 278,236 288,232 298,226 307,220 316,213 326,205 336,197 345,188 354,178 364,167 374,156 383,143 392,130 402,117 412,103 421,87 431,72 440,55" fill="none" stroke="#5B8FC2" stroke-width="2.5"/><line x1="222" y1="249" x2="222" y2="275" stroke="#1D9E75" stroke-width="1.4" stroke-dasharray="4 3"/><text x="222" y="291" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#1D9E75">w* (best)</text><g stroke="#9A6A2A" stroke-width="1.6" fill="none"><line x1="83" y1="170" x2="116" y2="203" marker-end="url(#gdah)"/><line x1="125" y1="212" x2="146" y2="224" marker-end="url(#gdah)"/><line x1="156" y1="232" x2="168" y2="236" marker-end="url(#gdah)"/></g><g fill="#9A6A2A"><circle cx="79" cy="166" r="4.5"/><circle cx="121" cy="208" r="4.5"/><circle cx="151" cy="229" r="4.5"/><circle cx="172" cy="239" r="4.5"/><circle cx="186" cy="244" r="4.5"/><circle cx="197" cy="247" r="4.5"/><circle cx="204" cy="248" r="4.5"/></g><text x="79" y="156" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#9A6A2A">start</text><text x="436" y="293" font-family="sans-serif" font-size="13" fill="#9C9B95">w</text><text x="38" y="52" font-family="sans-serif" font-size="13" fill="#9C9B95">MSE</text><text x="352" y="86" font-family="sans-serif" font-size="12" fill="#6B6A66">convex → one minimum</text></svg></div>
 
 - $\eta$ — the **learning rate**: too big diverges, too small crawls.
 - **Scale your features first** (standardize): on very different scales the bowl
@@ -77,8 +88,7 @@ scalable, the basis of all deep learning.)
 
 ## 5. How good is the fit? — R² and residuals
 
-$$ R^2 = 1 - \frac{\sum_i (\hat y_i - y_i)^2}{\sum_i (y_i - \bar y)^2}
-       = 1 - \frac{\text{model error}}{\text{error of just predicting } \bar y}. $$
+$$ R^2 = 1 - \frac{\sum_i (\hat y_i - y_i)^2}{\sum_i (y_i - \bar y)^2} = 1 - \frac{\text{model error}}{\text{error of just predicting } \bar y}. $$
 
 Read it as the **fraction of the variance in $y$ that the model explains**: $R^2 = 1$
 is perfect, $R^2 = 0$ is no better than always guessing the mean $\bar y$, and it can
@@ -428,6 +438,10 @@ $k\times$ the compute. The **test set stays untouched** until the very end.
 ## 6. Underfitting vs. overfitting
 
 The central failure modes — both are *poor generalization*, for opposite reasons.
+Same data, three models: too simple (misses the trend), just right (captures it), and
+too flexible (chases every wiggle of the noise):
+
+<div style="text-align:center;margin:0.6rem 0"><svg viewBox="0 0 540 230" style="width:100%;max-width:540px;height:auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Three panels on the same data. Left: a straight line underfits. Middle: a smooth curve fits well. Right: a wiggly high-degree curve overfits by chasing the noise."><rect x="1" y="1" width="538" height="228" rx="14" fill="#FAFAF7" stroke="#E2E2DA"/><g fill="#FFFFFF" stroke="#E2E2DA"><rect x="20" y="35" width="150" height="150" rx="6"/><rect x="193" y="35" width="150" height="150" rx="6"/><rect x="366" y="35" width="150" height="150" rx="6"/></g><polyline points="23,77 44,76 78,75 112,74 146,73 167,73" fill="none" stroke="#9A6A2A" stroke-width="2.5"/><polyline points="196,84 217,80 240,74 262,69 287,67 311,71 337,86 340,88" fill="none" stroke="#1D9E75" stroke-width="2.5"/><polyline points="369,52 374,88 380,92 388,78 397,70 405,72 414,75 421,75 429,72 437,68 445,69 455,73 463,76 469,74 477,66 485,59 492,64 500,87 505,99 510,80 513,35" fill="none" stroke="#C0507A" stroke-width="2.2"/><g><circle cx="28" cy="87" r="3.5" fill="#185FA5"/><circle cx="44" cy="75" r="3.5" fill="#185FA5"/><circle cx="61" cy="73" r="3.5" fill="#185FA5"/><circle cx="78" cy="74" r="3.5" fill="#185FA5"/><circle cx="95" cy="68" r="3.5" fill="#185FA5"/><circle cx="112" cy="74" r="3.5" fill="#185FA5"/><circle cx="129" cy="69" r="3.5" fill="#185FA5"/><circle cx="146" cy="63" r="3.5" fill="#185FA5"/><circle cx="162" cy="90" r="3.5" fill="#185FA5"/><circle cx="200" cy="87" r="3.5" fill="#185FA5"/><circle cx="217" cy="75" r="3.5" fill="#185FA5"/><circle cx="234" cy="73" r="3.5" fill="#185FA5"/><circle cx="251" cy="74" r="3.5" fill="#185FA5"/><circle cx="268" cy="68" r="3.5" fill="#185FA5"/><circle cx="285" cy="74" r="3.5" fill="#185FA5"/><circle cx="302" cy="69" r="3.5" fill="#185FA5"/><circle cx="319" cy="63" r="3.5" fill="#185FA5"/><circle cx="336" cy="90" r="3.5" fill="#185FA5"/><circle cx="374" cy="87" r="3.5" fill="#185FA5"/><circle cx="390" cy="75" r="3.5" fill="#185FA5"/><circle cx="407" cy="73" r="3.5" fill="#185FA5"/><circle cx="424" cy="74" r="3.5" fill="#185FA5"/><circle cx="441" cy="68" r="3.5" fill="#185FA5"/><circle cx="458" cy="74" r="3.5" fill="#185FA5"/><circle cx="475" cy="69" r="3.5" fill="#185FA5"/><circle cx="492" cy="63" r="3.5" fill="#185FA5"/><circle cx="508" cy="90" r="3.5" fill="#185FA5"/></g><g font-family="sans-serif" font-size="13" text-anchor="middle"><text x="95" y="207" fill="#9A6A2A">underfit (too simple)</text><text x="268" y="207" fill="#1D9E75">just right</text><text x="441" y="207" fill="#C0507A">overfit (too wiggly)</text></g></svg></div>
 
 **Underfitting (high bias)** — the model is **too simple** to capture the pattern.
 - *Signs:* **high train error AND high test error** (close together).
@@ -444,6 +458,8 @@ falling, but test error first falls, bottoms out at the **sweet spot**, then ris
 **U-curve**. Crank the degree in the Playground and watch it happen. (Aside: very large
 models can show a surprising *double descent* where test error falls again — beyond this
 lesson.)
+
+<div style="text-align:center;margin:0.6rem 0"><svg viewBox="0 0 480 300" style="width:100%;max-width:470px;height:auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="As model capacity grows, training error keeps falling while test error follows a U-shape, reaching a minimum at the sweet spot before rising due to overfitting."><rect x="1" y="1" width="478" height="298" rx="14" fill="#FAFAF7" stroke="#E2E2DA"/><line x1="60" y1="250" x2="448" y2="250" stroke="#C9C8C1" stroke-width="1.2"/><line x1="60" y1="250" x2="60" y2="40" stroke="#C9C8C1" stroke-width="1.2"/><line x1="164" y1="82" x2="164" y2="250" stroke="#1D9E75" stroke-width="1.3" stroke-dasharray="4 3"/><text x="164" y="74" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#1D9E75">sweet spot</text><polyline points="60,172 95,202 129,219 164,229 198,235 233,238 267,240 302,241 336,242 371,242 405,242 440,242" fill="none" stroke="#185FA5" stroke-width="2.5"/><polyline points="60,89 95,142 129,168 164,177 198,175 233,167 267,155 302,140 336,122 371,103 405,82 440,60" fill="none" stroke="#C0507A" stroke-width="2.5"/><circle cx="164" cy="177" r="4.5" fill="#1D9E75"/><text x="96" y="116" font-family="sans-serif" font-size="11" fill="#9C9B95">underfit</text><text x="404" y="118" text-anchor="end" font-family="sans-serif" font-size="11" fill="#9C9B95">overfit</text><g font-family="sans-serif" font-size="12"><line x1="246" y1="36" x2="270" y2="36" stroke="#185FA5" stroke-width="2.5"/><text x="276" y="40" fill="#185FA5">train</text><line x1="330" y1="36" x2="354" y2="36" stroke="#C0507A" stroke-width="2.5"/><text x="360" y="40" fill="#C0507A">test</text></g><text x="252" y="278" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#6B6A66">model capacity (e.g. polynomial degree) →</text><text x="30" y="150" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#6B6A66" transform="rotate(-90 30 150)">error</text></svg></div>
 
 ## 7. The bias–variance tradeoff
 

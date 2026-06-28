@@ -63,7 +63,7 @@ with tab_play:
             "stable sigmoid/softmax does.", icon=":material/lightbulb:")
 
 with tab_theory:
-    st.markdown(LESSON.theory)
+    st.markdown(LESSON.theory, unsafe_allow_html=True)
 with tab_quiz:
     st.subheader("Self-check")
     st.caption("Instant feedback, no grading.")

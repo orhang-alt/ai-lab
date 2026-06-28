@@ -120,7 +120,7 @@ with tab_play:
             "An ensemble (random forest) would stabilize this.", icon=":material/lightbulb:")
 
 with tab_theory:
-    st.markdown(LESSON.theory)
+    st.markdown(LESSON.theory, unsafe_allow_html=True)
 with tab_quiz:
     st.subheader("Self-check")
     st.caption("Instant feedback, no grading.")
