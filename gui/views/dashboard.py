@@ -10,6 +10,81 @@ import lab
 st.title("🧠 AI Lab")
 st.caption("From a single neuron to a small GPT — one growing library, many experiments.")
 
+# --------------------------------------------------------------------------- #
+# Learning roadmap — five levels, basics → frontier, with links to each page
+# --------------------------------------------------------------------------- #
+st.subheader("📚 Learning roadmap — a single neuron → a GPT")
+st.markdown(
+    "Five levels, **basics to frontier**. Work top to bottom — each builds on the last. "
+    "**Click any step to open it.** New to the maths? The **Math (X1–X6)** and **ML (M0–M8)** "
+    "tracks in the sidebar's **Module** switcher are the parallel foundations."
+)
+st.page_link("views/the_chain.py", label="Start with the big picture — how it all connects",
+             icon=":material/route:")
+
+ROADMAP = [
+    ("Level 1 · The neuron — foundations",
+     "A neuron is just a **weighted sum + a nonlinearity** — one decision line. Meet it, watch "
+     "**two** neurons already beat XOR, and see how neurons become **logic gates** and even do "
+     "arithmetic. This is the atom everything else is built from.",
+     [("views/playground.py", "Neuron playground", ":material/tune:"),
+      ("views/two_neurons.py", "Two neurons", ":material/hub:"),
+      ("views/neurons_compute.py", "Neurons → computer", ":material/calculate:")]),
+
+    ("Level 2 · How a network learns — training",
+     "The engine of deep learning: **backprop** finds a gradient for every weight, an "
+     "**optimizer** steps downhill, and **regularization** stops it memorizing noise. Train "
+     "your first network — it learns XOR live — and watch overfitting appear and get tamed.",
+     [("views/backprop.py", "Backprop", ":material/sync_alt:"),
+      ("views/mlp.py", "MLP (train it)", ":material/network_node:"),
+      ("views/optimizers.py", "Optimizers", ":material/trending_down:"),
+      ("views/deep_playground.py", "Deep nets (2D)", ":material/blur_on:"),
+      ("views/regularization.py", "Regularization", ":material/tune:")]),
+
+    ("Level 3 · Architectures — images & sequences",
+     "Wiring matched to the data: **convolutions** share a small filter across an image "
+     "(**CNN**); **recurrence** carries a hidden state across a sequence (**RNN**). The RNN's "
+     "memory limits are exactly what motivates attention next.",
+     [("views/cnn.py", "CNN (images)", ":material/image:"),
+      ("views/rnn.py", "RNN (sequences)", ":material/repeat:")]),
+
+    ("Level 4 · Attention & Transformers",
+     "The leap to modern AI: text becomes **tokens**, **self-attention** lets every token "
+     "gather context by dot-product + softmax, and a stack of attention blocks predicts the "
+     "**next token** — a tiny **GPT** you can run right here.",
+     [("views/tokenization.py", "Tokenization", ":material/content_cut:"),
+      ("views/attention.py", "Attention (LLMs)", ":material/auto_awesome:"),
+      ("views/transformer.py", "Tiny GPT", ":material/smart_toy:")]),
+
+    ("Level 5 · LLMs in practice",
+     "From a base model to a useful assistant: **decoding** turns probabilities into text, "
+     "**embeddings + RAG** ground answers in facts, and **fine-tuning + RLHF** align "
+     "behaviour. Then train the *real* thing — the **e21 nanoGPT** — from the Experiments page.",
+     [("views/sampling.py", "Decoding (sampling)", ":material/casino:"),
+      ("views/embeddings.py", "Embeddings & RAG", ":material/database:"),
+      ("views/posttraining.py", "Post-training (RLHF)", ":material/psychology:"),
+      ("views/experiments.py", "Experiments (e21 nanoGPT)", ":material/science:")]),
+]
+
+for title, intro, items in ROADMAP:
+    with st.container(border=True):
+        st.markdown(f"#### {title}")
+        st.markdown(intro)
+        # lay the page links out in rows of up to 3
+        for i in range(0, len(items), 3):
+            row = items[i:i + 3]
+            cols = st.columns(3)
+            for col, (path, label, icon) in zip(cols, row):
+                col.page_link(path, label=label, icon=icon)
+
+st.divider()
+
+# --------------------------------------------------------------------------- #
+# Build status — runs each experiment's run.py (done / todo / error)
+# --------------------------------------------------------------------------- #
+st.subheader("🔬 Experiment build status")
+st.caption("Live status of the code experiments under `experiments/` (each run.py is executed).")
+
 
 @st.cache_data(show_spinner="Scanning experiments…")
 def scan():
@@ -36,8 +111,6 @@ with top:
     c2.metric("Done", done)
     c3.metric("Remaining", len(flat) - done)
     st.progress(done / len(flat) if flat else 0.0)
-
-st.divider()
 
 for tier, rows in data.items():
     t_done = sum(1 for _, s in rows if s == "done")
