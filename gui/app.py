@@ -30,6 +30,7 @@ ANN_PAGES = [
     st.Page("views/playground.py", title="Neuron playground", icon=":material/tune:"),
     st.Page("views/two_neurons.py", title="Two neurons", icon=":material/hub:"),
     st.Page("views/backprop.py", title="Backprop", icon=":material/sync_alt:"),
+    st.Page("views/mlp.py", title="MLP (train it)", icon=":material/network_node:"),
     st.Page("views/neurons_compute.py", title="Neurons → computer", icon=":material/calculate:"),
     st.Page("views/the_chain.py", title="The big picture", icon=":material/route:"),
     st.Page("views/experiments.py", title="Experiments", icon=":material/science:"),
