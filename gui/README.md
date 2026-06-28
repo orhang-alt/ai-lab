@@ -28,6 +28,8 @@ Opens at http://localhost:8501. `start.sh` writes a PID to `.gui.pid` and logs t
   numerical computing.
 - **Dashboard** — shows the learning path, scans lightweight experiments by default
   (`run.py`; 🟢 done / ⚪ todo / 🔴 error / ⏱️ deferred), and embeds `ROADMAP.md`.
+- **Study Coach** — daily loop, oral-exam questions, self-checks, derivations, and
+  the checkpoint template.
 - **Playgrounds** — interactive neuron, MLP, optimizer, regularization, attention,
   tokenization, and tiny-GPT lessons wired to the lab's reusable concepts.
 - **Experiments** — per-experiment Overview (README), Code, Run (captures stdout),
@@ -42,8 +44,10 @@ Opens at http://localhost:8501. `start.sh` writes a PID to `.gui.pid` and logs t
 gui/
 ├── app.py            # entrypoint: st.navigation over the views
 ├── lab.py            # disk discovery + run helpers (the only "model" layer)
+├── ui.py             # small shared visual polish helpers
 └── views/            # one file per screen
     ├── dashboard.py
+    ├── study_coach.py
     ├── ml_*.py
     ├── math_*.py
     ├── playground.py

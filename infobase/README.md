@@ -15,6 +15,9 @@ it. Rewrite these in your own words as you learn — that rewriting *is* the lea
 ## 01 — Training  ·  02 — Architectures  ·  03 — LLM
 Stubs for now — fill them in as you reach Tiers 2–5.
 
+## 04 — Derivations
+- [04_derivations/](04_derivations/) — rebuild the core math from memory.
+
 ## Conventions
 - One concept per file. Keep it tight.
 - End each note with **Links:** to the experiment(s) and paper(s).

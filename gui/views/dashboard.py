@@ -6,9 +6,13 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))  # gui/
 import streamlit as st
 
 import lab
+import ui
 
 st.title("🧠 AI Lab")
-st.caption("From a single neuron to a small GPT — one growing library, many experiments.")
+ui.hero(
+    "From a single neuron to a small GPT",
+    "Train the fundamentals by rebuilding them: run the experiment, explain the result, derive the formula, then break it on purpose.",
+)
 
 # --------------------------------------------------------------------------- #
 # Learning roadmap — five levels, basics → frontier, with links to each page

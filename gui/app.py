@@ -19,21 +19,25 @@ import sys
 os.environ.setdefault("MPLBACKEND", "Agg")
 
 import streamlit as st
+import ui
 
 # Make the lab root importable so `import core` works without `pip install -e .`
 # (e.g. on Streamlit Community Cloud, which only installs requirements.txt).
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 
 st.set_page_config(page_title="AI Lab", page_icon="🧠", layout="wide")
+ui.inject_theme()
 
 # Shared across modules — a Python scratchpad with numpy + the lab's core preloaded.
 SANDBOX = st.Page("views/sandbox.py", title="Sandbox", icon=":material/code:")
+COACH = st.Page("views/study_coach.py", title="Study Coach", icon=":material/self_improvement:")
 
 # Pages are grouped into sections that follow the learning path. Passing a {section: [pages]}
 # dict to st.navigation renders the keys as sidebar section headers (much less crowded).
 ANN = {
     "Overview": [
         st.Page("views/dashboard.py", title="Dashboard", icon=":material/dashboard:", default=True),
+        COACH,
         st.Page("views/the_chain.py", title="The big picture", icon=":material/route:"),
     ],
     "Level 1 · The neuron": [

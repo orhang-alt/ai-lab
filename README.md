@@ -63,5 +63,7 @@ See [`gui/README.md`](gui/README.md).
 2. Open the experiment's `README.md` — it states a **hypothesis** and **what to observe**.
 3. Implement / run `run.py`, record results in the experiment's `notes.md`.
 4. When you build something reusable, promote it into `core/` and add a test.
+5. Use `learning/templates/checkpoint.md` and `learning/questions/` to prove you
+   can reconstruct the idea from memory.
 
 See [`ROADMAP.md`](ROADMAP.md) for the full plan and your progress checklist.

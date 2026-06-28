@@ -22,9 +22,9 @@ items off as you go. Status legend: `[ ]` todo · `[~]` in progress · `[x]` don
 **Adds to core/:** `engine.py` (Value), `losses.py`, `optim.py`, `init.py`.
 
 ## Tier 2 — Training dynamics  *(vectorized NumPy → bridge to PyTorch)*
-- [ ] e09 — Optimizers: SGD → Momentum → Adam on the same loss surface.
-- [ ] e10 — Initialization (Xavier/He) & learning-rate effects.
-- [ ] e11 — Regularization: L2, dropout, over/underfitting.
+- [x] e09 — Optimizers: SGD → Momentum → Adam on the same loss surface.
+- [x] e10 — Initialization (Xavier/He) & signal-scale effects.
+- [x] e11 — Regularization: L2, over/underfitting.
 - [ ] e12 — **MNIST from scratch** (pure-NumPy MLP).
 - [ ] e13 — Reproduce e12 in **PyTorch**; compare.
 
