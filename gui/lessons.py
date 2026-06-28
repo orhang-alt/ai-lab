@@ -112,9 +112,24 @@ $$ z = \mathbf{w}\cdot\mathbf{x} + b = \sum_{i=1}^{n} w_i x_i + b, \qquad a = \v
 - $\varphi$ — the **activation** (the nonlinearity).
 - $a$ — the neuron's **output**.
 
+In one picture: each input is scaled by its weight, the results are **summed** with the
+bias to make $z$, and $\varphi$ bends that single number into the output $a$.
+
+<div style="text-align:center;margin:0.7rem 0"><svg viewBox="0 0 600 280" style="width:100%;max-width:560px;height:auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Schematic of one neuron: each input times its weight is summed with a bias to give z, then an activation phi gives the output a."><defs><marker id="nnah" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 z" fill="#33312E"/></marker></defs><rect x="1" y="1" width="598" height="278" rx="14" fill="#FAFAF7" stroke="#E2E2DA"/><g stroke="#33312E" stroke-width="1.6" fill="none"><line x1="116" y1="68" x2="262" y2="126" marker-end="url(#nnah)"/><line x1="116" y1="140" x2="258" y2="140" marker-end="url(#nnah)"/><line x1="116" y1="212" x2="262" y2="154" marker-end="url(#nnah)"/><line x1="300" y1="232" x2="300" y2="182" marker-end="url(#nnah)"/><line x1="340" y1="140" x2="394" y2="140" marker-end="url(#nnah)"/><line x1="464" y1="140" x2="524" y2="140" marker-end="url(#nnah)"/></g><g font-family="sans-serif" font-size="13" fill="#0C447C"><text x="178" y="90">w₁</text><text x="182" y="133">w₂</text><text x="178" y="188">w₃</text></g><g><circle cx="90" cy="68" r="22" fill="#E6F1FB" stroke="#5B8FC2" stroke-width="1.8"/><circle cx="90" cy="140" r="22" fill="#E6F1FB" stroke="#5B8FC2" stroke-width="1.8"/><circle cx="90" cy="212" r="22" fill="#E6F1FB" stroke="#5B8FC2" stroke-width="1.8"/></g><g font-family="sans-serif" font-size="14" fill="#0C447C" text-anchor="middle"><text x="90" y="73">x₁</text><text x="90" y="145">x₂</text><text x="90" y="217">x₃</text></g><circle cx="300" cy="140" r="40" fill="#EFD3AE" stroke="#9A6A2A" stroke-width="2"/><text x="300" y="137" text-anchor="middle" font-family="sans-serif" font-size="24" fill="#5A3E14">Σ</text><text x="300" y="157" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5A3E14">+ b</text><circle cx="300" cy="250" r="18" fill="#FBEAD6" stroke="#9A6A2A" stroke-width="1.6"/><text x="300" y="255" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#5A3E14">b</text><text x="367" y="131" text-anchor="middle" font-family="sans-serif" font-size="14" fill="#33312E">z</text><circle cx="430" cy="140" r="34" fill="#D7EFE5" stroke="#1D9E75" stroke-width="2"/><text x="430" y="148" text-anchor="middle" font-family="sans-serif" font-size="22" fill="#0E5E45">φ</text><text x="538" y="147" font-family="sans-serif" font-size="20" fill="#33312E">a</text><g font-family="sans-serif" font-size="11" fill="#9C9B95" text-anchor="middle"><text x="300" y="205">weighted sum (linear)</text><text x="430" y="192">activation (nonlinear)</text></g></svg></div>
+
 The two stages have very different jobs: the **linear** part ($z$) *mixes* the
 inputs; the **nonlinear** part ($\varphi$) *decides / squashes*. Essentially all
 of deep learning is alternating these two operations.
+
+A single neuron goes by several names: a **unit** or **node**, and — with a hard
+step activation — a **perceptron** or **threshold logic unit (TLU)**.
+
+**A worked example.** Take $\mathbf w=(0.5,\,-1,\,2)$, $b=0.5$, input
+$\mathbf x=(2,\,1,\,0)$, and a sigmoid $\varphi$:
+$$z = (0.5)(2) + (-1)(1) + (2)(0) + 0.5 = 0.5,\qquad a=\sigma(0.5)=\frac{1}{1+e^{-0.5}}\approx 0.62.$$
+Now push $x_3$ from $0\to1$: $z$ jumps by $w_3=2$ to $2.5$, so $a=\sigma(2.5)\approx0.92$.
+That "$z$ moves by $w_i$ when $x_i$ moves by 1" is exactly the meaning of a weight
+(§2). Reproduce both numbers in the Playground with $n=3$.
 
 **Vectorized / batched.** For a layer of $u$ neurons, stack the weight vectors
 into $W\in\mathbb{R}^{u\times n}$ and biases into $\mathbf b\in\mathbb{R}^{u}$:
@@ -124,50 +139,78 @@ $X\in\mathbb{R}^{m\times n}$: $Z = XW^{\top}+\mathbf b$ — one matrix multiply
 
 ## 2. The three ingredients
 
-**Weights $\mathbf w$** — one per input. Sign = excite ($+$) or inhibit ($-$);
-magnitude = how much that input matters. They are what the network *learns*.
+A neuron has exactly **three kinds of knobs**, and each does one clean job. On a
+1-input neuron you can see two of them directly: the **weight sets how steep** the
+switch is, the **bias slides it left or right** (the activation, §5, sets the curve's
+*shape*):
 
-**Bias $b$** — the offset/threshold. It lets the neuron output something nonzero
-when all inputs are zero, and sets *how much evidence* is needed before the output
-flips. *Bias trick:* append a constant input $x_0=1$ with weight $w_0=b$; then
-$z=\tilde{\mathbf w}\cdot\tilde{\mathbf x}$ — bias is "just another weight".
+<div style="text-align:center;margin:0.7rem 0"><svg viewBox="0 0 530 285" style="width:100%;max-width:530px;height:auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two panels. Left: a larger weight makes the sigmoid switch steeper. Right: the bias slides the same switch left or right."><rect x="1" y="1" width="528" height="283" rx="14" fill="#FAFAF7" stroke="#E2E2DA"/><line x1="55" y1="230" x2="245" y2="230" stroke="#D9D8D1" stroke-width="1"/><line x1="150" y1="62" x2="150" y2="240" stroke="#D9D8D1" stroke-width="1"/><line x1="55" y1="150" x2="245" y2="150" stroke="#ECEBE4" stroke-width="1" stroke-dasharray="3 3"/><polyline points="55,226 61,225 68,223 74,221 80,219 87,217 93,213 99,210 106,205 112,199 118,193 125,186 131,178 137,169 144,160 150,150 156,140 163,131 169,122 175,114 182,107 188,101 194,95 201,90 207,87 213,83 220,81 226,79 232,77 239,75 245,74" fill="none" stroke="#BFD8EF" stroke-width="2.5"/><polyline points="55,230 61,230 68,230 74,230 80,230 87,230 93,229 99,229 106,228 112,226 118,222 125,217 131,207 137,193 144,173 150,150 156,127 163,107 169,93 175,83 182,78 188,74 194,72 201,71 207,71 213,70 220,70 226,70 232,70 239,70 245,70" fill="none" stroke="#5B8FC2" stroke-width="2.5"/><polyline points="55,230 61,230 68,230 74,230 80,230 87,230 93,230 99,230 106,230 112,230 118,230 125,230 131,230 137,227 144,211 150,150 156,89 163,73 169,70 175,70 182,70 188,70 194,70 201,70 207,70 213,70 220,70 226,70 232,70 239,70 245,70" fill="none" stroke="#0C447C" stroke-width="2.5"/><line x1="285" y1="230" x2="475" y2="230" stroke="#D9D8D1" stroke-width="1"/><line x1="380" y1="62" x2="380" y2="240" stroke="#D9D8D1" stroke-width="1"/><line x1="285" y1="150" x2="475" y2="150" stroke="#ECEBE4" stroke-width="1" stroke-dasharray="3 3"/><polyline points="285,229 291,228 298,225 304,221 310,215 317,203 323,186 329,163 336,137 342,114 348,97 355,85 361,79 367,75 374,72 380,71 386,71 393,70 399,70 405,70 412,70 418,70 424,70 431,70 437,70 443,70 450,70 456,70 462,70 469,70 475,70" fill="none" stroke="#E6A4C0" stroke-width="2.5"/><polyline points="285,230 291,230 298,230 304,230 310,230 317,230 323,229 329,229 336,228 342,227 348,224 355,219 361,210 367,195 374,175 380,150 386,125 393,105 399,90 405,81 412,76 418,73 424,72 431,71 437,71 443,70 450,70 456,70 462,70 469,70 475,70" fill="none" stroke="#C0507A" stroke-width="2.5"/><polyline points="285,230 291,230 298,230 304,230 310,230 317,230 323,230 329,230 336,230 342,230 348,230 355,230 361,230 367,230 374,229 380,229 386,228 393,225 399,221 405,215 412,203 418,186 424,163 431,137 437,114 443,97 450,85 456,79 462,75 469,72 475,71" fill="none" stroke="#8A2351" stroke-width="2.5"/><g font-family="sans-serif"><text x="150" y="268" text-anchor="middle" font-size="13" fill="#0C447C">weight → steepness</text><text x="380" y="268" text-anchor="middle" font-size="13" fill="#8A2351">bias → position</text><text x="150" y="52" text-anchor="middle" font-size="11" fill="#9C9B95">small |w| … large |w|</text><text x="380" y="52" text-anchor="middle" font-size="11" fill="#9C9B95">slides left … right</text></g></svg></div>
 
-**Activation $\varphi$** — squashes/thresholds $z$ into the output. Its shape
-decides whether the neuron behaves like a hard switch, a soft probability, or a
-rectifier (§5).
+**Weights $\mathbf w$** — one per input. The **sign** says excite ($+$) or inhibit
+($-$); the **magnitude** says how much that input matters. Precisely,
+$w_i=\partial z/\partial x_i$ is the neuron's **sensitivity** to input $i$ — nudge
+$x_i$ a little and $z$ moves by $w_i$. So bigger $|w_i|$ ⇒ a steeper, more decisive
+response (left panel), and scaling **all** weights up sharpens the switch toward a hard
+step. Weights are what the network *learns*.
 
-## 3. Four ways to *understand* one neuron
+**Bias $b$** — the offset, equivalently a **threshold**. The neuron leans positive when
+$z=\mathbf w\cdot\mathbf x + b \ge 0$, i.e. when the evidence clears the bar
+$\mathbf w\cdot\mathbf x \ge -b$; so $\theta=-b$ *is* that bar. The bias lets the output
+be nonzero when all inputs are zero, and **slides** the whole response curve left/right
+(right panel) without changing its shape. *Bias trick:* append a constant input
+$x_0=1$ with weight $w_0=b$; then $z=\tilde{\mathbf w}\cdot\tilde{\mathbf x}$ — bias is
+"just another weight". (So one neuron has $n+1$ **parameters**: $n$ weights $+$ 1 bias.)
 
-Same equation — four mental models, each illuminating something different.
+**Activation $\varphi$** — squashes/thresholds $z$ into the output. Its shape decides
+whether the neuron behaves like a hard switch, a soft probability, or a rectifier (§5).
 
-**(a) A weighted vote / evidence accumulator.** Each input casts a weighted vote
-$w_i x_i$; $b$ is a prior leaning; $z$ is the tally; $\varphi$ turns the tally
-into a decision. Positive $w_i$ = "evidence *for*", negative = "evidence *against*".
+> **One line to remember:** *weights rotate & steepen the decision, the bias shifts it,
+> the activation shapes the output.*
 
-**(b) A hyperplane (the geometry).** The set
-$\{\mathbf x:\mathbf w\cdot\mathbf x+b=0\}$ is a hyperplane (a line in 2D):
-- $\mathbf w$ is its **normal vector** — it points to the "+" side and sets the orientation.
-- The **signed distance** of a point to it is $\dfrac{\mathbf w\cdot\mathbf x+b}{\lVert\mathbf w\rVert}$.
-- It cuts space into two half-spaces ($z>0$, $z<0$).
+## 3. Four ways to picture one neuron
 
-So a neuron asks: *which side, and how far?* In the Playground, $\mathbf w$
-rotates the boundary and $b$ slides it.
+The same little formula $a=\varphi(\mathbf w\cdot\mathbf x+b)$ can be *seen* in four
+ways — each makes a different thing click.
 
-**(c) A template matcher / matched filter — the most physical view.** Write the
-dot product in polar form:
+**(a) A weighted vote.** Picture each input casting a vote. Its **weight** says how
+loud that vote is and which way it leans (a positive weight = "vote yes", negative =
+"vote no"). The neuron **adds up the votes**; the **bias** is a head-start in one
+direction. If the total clears the bar, the neuron says **yes (1)**, otherwise
+**no (0)**. *Example — "should I go for a run?":* sunny ($+2$), it's raining ($-3$),
+I have time ($+1$) → add them up; if the total is positive, go.
 
-$$ z=\mathbf w\cdot\mathbf x=\lVert\mathbf w\rVert\,\lVert\mathbf x\rVert\cos\theta $$
+**(b) A line that splits space — the hyperplane.** *(the important one)*
 
-where $\theta$ is the angle between input and weight vector. For inputs of fixed
-length, $z$ is **largest when $\mathbf x$ points the same way as $\mathbf w$**.
-So the weight vector *is the pattern the neuron is tuned to* — its **preferred
-stimulus**. A neuron is a correlation detector: it "lights up" for inputs that
-look like its weights. (Visualize the first-layer weights of an image network and
-you literally see edge/color templates.)
+Plot your inputs as points on a graph. A single neuron draws **one straight line** and
+decides: everything on one side → **1**, everything on the other → **0**. That line is
+the whole personality of the neuron:
 
-**(d) A soft logic gate.** With a sigmoid and large weights it approximates
-AND/OR/NOT depending on $b$ — a *differentiable* logic gate (slide $b$ in the
-Playground to turn AND into OR).
+<div style="text-align:center;margin:0.7rem 0"><svg viewBox="0 0 600 340" style="width:100%;max-width:560px;height:auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A neuron's straight decision line splits the plane into a 1 side and a 0 side; the weight vector points to the 1 side at right angles, and distance from the line is confidence."><defs><marker id="hpah" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 z" fill="#9A6A2A"/></marker></defs><rect x="1" y="1" width="598" height="338" rx="14" fill="#FAFAF7" stroke="#E2E2DA"/><polygon points="40,270 560,110 560,40 40,40" fill="#E6F1FB"/><polygon points="40,270 560,110 560,300 40,300" fill="#FBEAF0"/><line x1="40" y1="270" x2="560" y2="110" stroke="#33312E" stroke-width="2.5"/><line x1="300" y1="190" x2="275" y2="109" stroke="#9A6A2A" stroke-width="2.5" marker-end="url(#hpah)"/><line x1="210" y1="252" x2="189" y2="183" stroke="#6B6A66" stroke-width="1.4" stroke-dasharray="4 3"/><circle cx="210" cy="252" r="5" fill="#33312E"/><text x="300" y="326" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#9C9B95">x₀</text><text x="20" y="172" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#9C9B95" transform="rotate(-90 20 172)">x₁</text><text x="450" y="80" font-family="sans-serif" font-size="15" fill="#0C447C">output = 1</text><text x="95" y="288" font-family="sans-serif" font-size="15" fill="#A32D2D">output = 0</text><text x="352" y="236" font-family="sans-serif" font-size="13" fill="#33312E">w·x + b = 0  (the line)</text><text x="247" y="100" font-family="sans-serif" font-size="15" fill="#9A6A2A">w</text><text x="150" y="270" font-family="sans-serif" font-size="11" fill="#6B6A66">distance = how sure</text></svg></div>
+
+- The **line itself** is where the neuron is exactly undecided ($\mathbf w\cdot\mathbf x+b=0$).
+- The **weights tilt / rotate** the line; the **bias slides** it across (try it in the Playground).
+- The arrow $\mathbf w$ points straight at the **"1" side**, at right angles to the line —
+  it's *the direction the neuron cares about*.
+- **How far** a point sits from the line = **how sure** the neuron is. Right on the line = 50/50.
+
+With **2 inputs** it's a **line**; with **3** a flat **plane**; with **many** we just call
+it a **hyperplane** — same idea, more dimensions. So a neuron only ever asks two things:
+**which side, and how far?**
+
+**(c) A pattern detector.** The weights are the neuron's **favourite pattern**. Writing
+the dot product as $\mathbf w\cdot\mathbf x=\lVert\mathbf w\rVert\,\lVert\mathbf x\rVert\cos\theta$
+shows the output is **biggest when the input points the same way as the weights** (small
+angle $\theta$) and **zero when they are at right angles**:
+
+<div style="text-align:center;margin:0.7rem 0"><svg viewBox="0 0 360 210" style="width:100%;max-width:360px;height:auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The weight vector and the input vector with the angle theta between them; output is largest when they align."><defs><marker id="alah" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 z" fill="#33312E"/></marker></defs><rect x="1" y="1" width="358" height="208" rx="14" fill="#FAFAF7" stroke="#E2E2DA"/><line x1="55" y1="175" x2="285" y2="50" stroke="#C0507A" stroke-width="2.5" marker-end="url(#alah)"/><line x1="55" y1="175" x2="245" y2="120" stroke="#185FA5" stroke-width="2.5" marker-end="url(#alah)"/><path d="M 110 147 A 60 60 0 0 0 99 137" fill="none" stroke="#6B6A66" stroke-width="1.4"/><text x="292" y="48" font-family="sans-serif" font-size="15" fill="#C0507A">w</text><text x="252" y="120" font-family="sans-serif" font-size="15" fill="#185FA5">x</text><text x="118" y="150" font-family="sans-serif" font-size="13" fill="#6B6A66">θ</text></svg></div>
+
+So a neuron "lights up" for inputs that **look like its weights** — like a key matching a
+lock. (Peek at the first layer of an image network and you literally see little edge and
+colour templates.)
+
+**(d) A soft logic gate.** With a steep activation and the right bias, the neuron behaves
+like **AND / OR / NOT** — a fuzzy, adjustable yes/no switch. (Load the AND preset in the
+Playground and slide the bias to turn it into OR.)
 
 ## 4. The physical picture
 
@@ -197,6 +240,11 @@ Three jobs, all essential:
    gain** — how strongly a change in $z$ changes the output. Backprop multiplies
    these gains along every path, so $\varphi'$ decides whether the learning signal
    survives (§6).
+
+The shapes at a glance — a hard **step**, the smooth **sigmoid**/**tanh** switches, and
+the **ReLU** rectifier:
+
+<div style="text-align:center;margin:0.7rem 0"><svg viewBox="0 0 480 300" style="width:100%;max-width:480px;height:auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Shapes of the step, sigmoid, tanh and ReLU activation functions on shared axes"><rect x="1" y="1" width="478" height="298" rx="14" fill="#FAFAF7" stroke="#E2E2DA"/><line x1="40" y1="200" x2="440" y2="200" stroke="#D9D8D1" stroke-width="1"/><line x1="240" y1="55" x2="240" y2="285" stroke="#D9D8D1" stroke-width="1"/><line x1="40" y1="130" x2="440" y2="130" stroke="#ECEBE4" stroke-width="1" stroke-dasharray="3 3"/><polyline points="40,200 240,200 240,130 440,130" fill="none" stroke="#9C9B95" stroke-width="2" stroke-dasharray="5 3"/><polyline points="40,200 53,200 67,200 80,199 93,199 107,199 120,198 133,197 147,196 160,194 173,192 187,188 200,184 213,178 227,172 240,165 253,158 267,152 280,146 293,142 307,138 320,136 333,134 347,133 360,132 373,131 387,131 400,131 413,130 427,130 440,130" fill="none" stroke="#185FA5" stroke-width="2.5"/><polyline points="40,270 53,270 67,270 80,270 93,270 107,270 120,270 133,270 147,269 160,269 173,267 187,265 200,258 213,246 227,227 240,200 253,173 267,154 280,142 293,135 307,133 320,131 333,131 347,130 360,130 373,130 387,130 400,130 413,130 427,130 440,130" fill="none" stroke="#7F77DD" stroke-width="2.5"/><polyline points="40,200 53,200 67,200 80,200 93,200 107,200 120,200 133,200 147,200 160,200 173,200 187,200 200,200 213,200 227,200 240,200 253,172 267,144 280,116 293,102 307,102 320,102 333,102 347,102 360,102 373,102 387,102 400,102 413,102 427,102 440,102" fill="none" stroke="#1D9E75" stroke-width="2.5"/><g font-family="sans-serif" font-size="11" fill="#6B6A66"><text x="446" y="134">1</text><text x="446" y="204">0</text><text x="446" y="274">−1</text><text x="432" y="295">z</text></g><g font-family="sans-serif" font-size="12"><text x="58" y="38" fill="#7d7c77">— step</text><text x="132" y="38" fill="#185FA5">— sigmoid</text><text x="240" y="38" fill="#7F77DD">— tanh</text><text x="322" y="38" fill="#1D9E75">— ReLU</text></g></svg></div>
 
 **The catalogue** (switch between these in the Playground and watch the surface):
 
@@ -250,6 +298,11 @@ gradients **explode**. ReLU's gain is exactly $1$ on the active side — which i
 why ReLU-family activations + sensible initialization (He, e10) + normalization
 made very deep nets trainable. **This is the single most important practical fact
 about activations.**
+
+Watch the gradient shrink with depth — sigmoid's best case ($0.25^L$) collapses toward
+zero, while ReLU stays at 1:
+
+<div style="text-align:center;margin:0.7rem 0"><svg viewBox="0 0 480 280" style="width:100%;max-width:480px;height:auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Gradient size versus network depth: ReLU stays at 1 while the sigmoid product vanishes toward zero."><rect x="1" y="1" width="478" height="278" rx="14" fill="#FAFAF7" stroke="#E2E2DA"/><line x1="40" y1="50" x2="40" y2="240" stroke="#D9D8D1" stroke-width="1"/><line x1="40" y1="240" x2="450" y2="240" stroke="#D9D8D1" stroke-width="1"/><polyline points="40,50 440,50" fill="none" stroke="#1D9E75" stroke-width="2.5"/><polyline points="40,59 61,68 82,77 103,86 124,95 145,104 166,113 187,122 208,131 229,140 251,149 272,158 293,167 314,176 335,185 356,194 377,204 398,213 419,222 440,230" fill="none" stroke="#185FA5" stroke-width="2.5"/><g font-family="sans-serif" font-size="12"><text x="250" y="44" fill="#1D9E75">ReLU — gain stays 1</text><text x="232" y="150" fill="#185FA5">sigmoid — 0.25ᴸ vanishes</text></g><g font-family="sans-serif" font-size="10.5" fill="#9C9B95"><text x="34" y="54" text-anchor="end">1</text><text x="34" y="144" text-anchor="end">10⁻⁶</text><text x="34" y="234" text-anchor="end">10⁻¹²</text><text x="40" y="256" text-anchor="middle">1</text><text x="440" y="256" text-anchor="middle">20</text><text x="245" y="272" text-anchor="middle">network depth (layers) →</text></g></svg></div>
 
 ## 7. How to choose an activation
 
@@ -308,6 +361,10 @@ is **linearly separable** — one line with all the 1-outputs on one side, all t
   represent them**, with any weights: their two "1" corners sit on opposite
   diagonals, and no straight line separates them. This is the famous **Minsky &
   Papert (1969)** result that helped trigger the first "AI winter".
+
+You can *see* it — one line cleanly splits AND, but no line can split XOR:
+
+<div style="text-align:center;margin:0.7rem 0"><svg viewBox="0 0 520 285" style="width:100%;max-width:520px;height:auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="AND is separable by one straight line; XOR is not — its two 1-corners sit on opposite diagonals."><rect x="1" y="1" width="518" height="283" rx="14" fill="#FAFAF7" stroke="#E2E2DA"/><rect x="55" y="70" width="160" height="160" fill="#FFFFFF" stroke="#D9D8D1"/><line x1="110" y1="63" x2="215" y2="177" stroke="#33312E" stroke-width="2"/><circle cx="80" cy="210" r="9" fill="#A32D2D"/><circle cx="190" cy="210" r="9" fill="#A32D2D"/><circle cx="80" cy="90" r="9" fill="#A32D2D"/><circle cx="190" cy="90" r="9" fill="#185FA5"/><rect x="305" y="70" width="160" height="160" fill="#FFFFFF" stroke="#D9D8D1"/><line x1="318" y1="120" x2="452" y2="180" stroke="#C7B8B8" stroke-width="1.6" stroke-dasharray="5 3"/><circle cx="330" cy="210" r="9" fill="#A32D2D"/><circle cx="440" cy="90" r="9" fill="#A32D2D"/><circle cx="330" cy="90" r="9" fill="#185FA5"/><circle cx="440" cy="210" r="9" fill="#185FA5"/><g font-family="sans-serif"><text x="135" y="258" text-anchor="middle" font-size="14" fill="#1D9E75">AND — one line works ✓</text><text x="385" y="258" text-anchor="middle" font-size="14" fill="#A32D2D">XOR — no line works ✗</text><text x="495" y="276" text-anchor="end" font-size="11" fill="#9C9B95">● = output 1   ● = output 0</text></g></svg></div>
 
 **Why the gates matter (the point of the exercise):**
 1. **They make "a neuron is a line" tangible** — and let you watch that line *fail*
@@ -631,28 +688,46 @@ Before any math: the artificial neuron is a deliberate *cartoon* of a real brain
 cell. It throws away almost all the biology but keeps one thing — the
 **computational role**. Seeing the real cell first makes every later symbol
 ($\mathbf w$, $b$, $\varphi$) feel inevitable.
+
+Real neurons are **enormously complex and vary a lot** in their structure and
+behaviour. So — like the field of **connectionism** — we focus on the **typical
+properties shared by most neurons** and make the working assumption that *these*
+account for the bulk of the brain's computing power. Here is that shared picture,
+kept as simple as possible.
 """
 
 _BIO_HOW = r"""
-### How a real neuron works
+### How a real neuron works (and how signals travel)
 
-- **Dendrites** — branched fibers that *receive* signals from up to ~10,000 other
-  neurons. (These are the inputs.)
-- **Soma (cell body)** — *integrates* the incoming signals; each nudges the
-  membrane voltage up (**excitatory**) or down (**inhibitory**).
-- **Threshold & the spike** — if the summed voltage at the axon hillock crosses a
-  threshold (≈ −55 mV), the neuron *fires*: a sharp **all-or-none** pulse, the
-  **action potential**. Below threshold → nothing; above → a full spike. That is
-  the original "step function".
-- **Axon** — the output cable. **Myelin** insulation lets the spike race along
-  (up to ~120 m/s), jumping between gaps (nodes of Ranvier).
-- **Synapse** — the junction where one neuron's axon terminal meets the next
-  neuron's dendrite. The spike triggers release of **neurotransmitter** molecules
-  across a tiny gap; they bind receptors and create a voltage change in the next
-  cell.
-- **Rate coding** — neurons mostly signal by *how often* they spike (firing rate),
-  not by a single spike. That firing-rate-vs-input curve is the biological
-  ancestor of the **activation function**.
+A neuron has three working parts: **dendrites** (the inputs), the **soma** / cell
+body (the integrator), and the **axon** (the output wire), which ends in **synapses**
+onto other neurons. A single neuron may connect to **thousands** of others.
+
+**At rest.** The inside of the cell sits slightly negative relative to the outside,
+about **−70 mV** — like a tiny charged battery held ready to fire.
+
+**Receiving signals.** Each incoming synapse gives the cell a small nudge:
+**excitatory** inputs push the voltage **up** (toward firing), **inhibitory** inputs
+push it **down**. The soma **adds up** all the nudges arriving together — this is
+*integration over space*.
+
+**The action potential (the "spike").** If the summed voltage crosses a **threshold**
+(around **−55 mV**), the neuron **fires**: a sharp voltage spike — the **action
+potential** — travels down the axon. It is **all-or-none**: a full spike or nothing,
+like a switch, not a dimmer. Then the cell briefly resets to rest.
+
+> *Bucket analogy:* picture a bucket filling with water. Excitatory inputs add water,
+> inhibitory inputs drain it. When it overflows the rim (the threshold) it tips over
+> (fires), empties, and starts refilling.
+
+**How the signal travels — electrical, then chemical.** Along the **axon** the spike
+is **electrical**, and a fatty **myelin** insulation makes it fast (up to ~120 m/s —
+the gap between a quick reflex and a slow-arriving ache). At the **synapse** it turns
+**chemical**: the arriving spike makes the axon tip release **neurotransmitter**
+molecules across a tiny gap (the **synaptic cleft**); they cross and bind
+**receptors** on the next neuron, nudging *its* voltage — and the cycle repeats. How
+big that nudge is — the **synaptic strength** — is the key adjustable quantity (strong
+vs. weak synapses), and **changing it is how the brain learns**.
 """
 
 _BIO_KNOWLEDGE = r"""
@@ -858,6 +933,133 @@ _SVG_MAP = """
 </svg>
 """
 
+_BIO_TLU = r"""
+### Modelling it: the artificial neuron (the TLU)
+
+Now strip the biology down to what *computes*. The simplest model — the **Threshold
+Logic Unit (TLU)**, drawn below — uses **two-valued signals**: every input and the
+output is either **1** ("firing / spike") or **0** ("resting"). Each piece maps to one
+real-neuron property:
+
+- **Inputs $x_1\dots x_n$** — the incoming signals (0 or 1), i.e. whether each upstream
+  neuron is firing.
+- **Weights $w_i$** — each input is **multiplied by a weight** before it counts.
+  *This is the synapse.* The **sign** of $w_i$ makes it excitatory ($w_i>0$, pushes
+  toward firing) or inhibitory ($w_i<0$, pushes away); the **size** is the **synaptic
+  strength** ($w_i=0$ means no connection).
+- **SUM** — add the weighted inputs, $a=w_1x_1+\dots+w_nx_n$. This is the soma
+  **integrating signals over space**.
+- **Threshold $\theta$** — if the sum reaches $\theta$, output **$y=1$** (fire); else
+  **$y=0$**. This is the **all-or-none action potential**, shown as the step on the right:
+
+$$ y = \begin{cases} 1 & \text{if } \sum_i w_i x_i \ge \theta \\ 0 & \text{otherwise} \end{cases} $$
+
+(The **bias** from the math lessons is just the threshold moved across: $b=-\theta$, so
+the rule becomes $\mathbf w\cdot\mathbf x + b \ge 0$.)
+
+**A quick feel.** Inputs $x=[1,0,1]$, weights $w=[1,-2,1]$, threshold $\theta=1.5$:
+sum $=1-0+1=2\ge1.5\Rightarrow$ **fires ($y=1$)**. Now switch the middle input on,
+$x=[1,1,1]$: sum $=1-2+1=0<1.5\Rightarrow$ **silent ($y=0$)** — the inhibitory input
+vetoed it. That is a neuron making a decision.
+"""
+
+_BIO_RATE = r"""
+### From a single spike to a firing *rate* (and the sigmoid)
+
+So far the signals took only **two values**. In a real neuron these are the **spike**
+(the action-potential voltage, ≈ +30 mV — call it **"1"**) and the **resting** voltage
+(≈ −70 mV — call it **"0"**). But a real neuron doesn't carry information in *one*
+pulse: it encodes it in **how fast it fires** — its **firing rate** (spikes per
+second). A weak stimulus → a few spikes per second; a strong one → a rapid train.
+Different inputs produce different characteristic **firing patterns**.
+
+How do we model a *rate* instead of a bare 0/1?
+
+- **Hard threshold (TLU)** — output is only 0 or 1: fires or not. Simple, but it throws
+  the rate away.
+- **Continuous output (the *semilinear* neuron)** — let the output be a **number
+  between 0 and 1** standing for the **firing rate**: 0 = silent, 1 = firing as fast as
+  possible, 0.5 = half rate. The natural shape is the **sigmoid** — near the threshold
+  the rate rises smoothly; far below it the neuron is silent (≈0); far above it
+  **saturates** (≈1, because a neuron can't fire infinitely fast). **So the sigmoid is
+  literally the neuron's firing-rate-vs-input curve** — the step is the idealised
+  all-or-none switch, the sigmoid is the realistic graded version.
+- **Stochastic version** — use that 0–1 number as the **probability** of emitting a
+  spike at each instant. High value → likely to fire; low → unlikely. Averaged over
+  time, that probability *is* the firing rate.
+
+That's the concrete link behind the abstract "sigmoid activation": it's just a smooth
+stand-in for **how often the neuron fires**.
+"""
+
+_BIO_SUMMARY = r"""
+### The modelling summary
+
+| real-neuron property | how the artificial neuron models it |
+|---|---|
+| integrate inputs over **space** (soma adds them) | a **weighted sum** $\sum_i w_i x_i$ |
+| a **synapse** and its strength | **multiplication by a weight** $w_i$ (sign = excitatory / inhibitory) |
+| the **action potential** (all-or-none) | a **threshold / step** → output 0 or 1 (the TLU) |
+| the **firing rate** (how fast it spikes) | a **continuous output** via the **sigmoid** (or, stochastically, a spike *probability*) |
+| integrate inputs over **time** | the **leaky-integrator** model — the cell gradually "forgets" old inputs |
+
+And one property comes for free: like real brains, these neurons are **robust** — they
+keep behaving sensibly when some inputs are noisy or missing, or some units fail,
+because each decision rests on a **sum of many** contributions, not any single one.
+
+Every modelling choice — sum, weight, threshold, sigmoid, leaky integrator — is a
+deliberate, simplified stand-in for one property of the real cell: enough to compute
+with, without the biophysics.
+"""
+
+_SVG_TLU = """
+<svg viewBox="0 0 760 400" style="width:100%;height:auto;max-width:780px" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Threshold Logic Unit: inputs times weights, summed, then thresholded to a 0/1 output">
+  <defs>
+    <marker id="tluah" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 z" fill="#33312E"/>
+    </marker>
+  </defs>
+  <rect x="1" y="1" width="758" height="398" rx="14" fill="#FAFAF7" stroke="#E2E2DA"/>
+  <g stroke="#33312E" stroke-width="2" fill="none">
+    <line x1="70" y1="70" x2="250" y2="158" marker-end="url(#tluah)"/>
+    <line x1="55" y1="150" x2="244" y2="183" marker-end="url(#tluah)"/>
+    <line x1="70" y1="330" x2="250" y2="232" marker-end="url(#tluah)"/>
+  </g>
+  <g stroke="#33312E" stroke-width="1.6" fill="#FFFFFF">
+    <circle cx="180" cy="114" r="15"/><circle cx="160" cy="167" r="15"/><circle cx="180" cy="282" r="15"/>
+  </g>
+  <g stroke="#33312E" stroke-width="1.4">
+    <line x1="170" y1="104" x2="190" y2="124"/><line x1="190" y1="104" x2="170" y2="124"/>
+    <line x1="150" y1="157" x2="170" y2="177"/><line x1="170" y1="157" x2="150" y2="177"/>
+    <line x1="170" y1="272" x2="190" y2="292"/><line x1="190" y1="272" x2="170" y2="292"/>
+  </g>
+  <circle cx="300" cy="195" r="58" fill="#EFD3AE" stroke="#9A6A2A" stroke-width="2.5"/>
+  <text x="300" y="203" text-anchor="middle" font-family="sans-serif" font-size="22" fill="#5A3E14">SUM</text>
+  <line x1="358" y1="195" x2="442" y2="195" stroke="#33312E" stroke-width="2" marker-end="url(#tluah)"/>
+  <rect x="445" y="132" width="215" height="126" rx="6" fill="#FFFFFF" stroke="#9C9B95"/>
+  <line x1="478" y1="240" x2="478" y2="152" stroke="#6B6A66" stroke-width="1.2"/>
+  <line x1="478" y1="240" x2="648" y2="240" stroke="#6B6A66" stroke-width="1.2"/>
+  <line x1="565" y1="240" x2="565" y2="172" stroke="#B7B6B0" stroke-width="1" stroke-dasharray="3 3"/>
+  <polyline points="478,240 565,240 565,172 642,172" fill="none" stroke="#185FA5" stroke-width="2.5"/>
+  <text x="470" y="150" text-anchor="end" font-family="sans-serif" font-size="12" fill="#33312E">y</text>
+  <text x="470" y="176" text-anchor="end" font-family="sans-serif" font-size="11" fill="#6B6A66">1</text>
+  <text x="652" y="244" font-family="sans-serif" font-size="12" fill="#33312E">a</text>
+  <text x="565" y="254" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#33312E">θ</text>
+  <line x1="660" y1="195" x2="712" y2="195" stroke="#33312E" stroke-width="2" marker-end="url(#tluah)"/>
+  <text x="722" y="200" font-family="sans-serif" font-size="16" fill="#33312E">y</text>
+  <g font-family="sans-serif" font-size="15" fill="#33312E">
+    <text x="46" y="66">x₁</text><text x="31" y="146">x₂</text><text x="46" y="346">xₙ</text>
+    <text x="198" y="104" font-size="13">w₁</text><text x="178" y="157" font-size="13">w₂</text><text x="198" y="272" font-size="13">wₙ</text>
+  </g>
+  <g fill="#6B6A66"><circle cx="118" cy="212" r="2.5"/><circle cx="126" cy="225" r="2.5"/><circle cx="134" cy="238" r="2.5"/></g>
+  <rect x="430" y="300" width="300" height="76" rx="10" fill="#FAFAF7" stroke="#E2E2DA"/>
+  <circle cx="472" cy="340" r="15" fill="#FFFFFF" stroke="#33312E" stroke-width="1.6"/>
+  <g stroke="#33312E" stroke-width="1.4"><line x1="462" y1="330" x2="482" y2="350"/><line x1="482" y1="330" x2="462" y2="350"/></g>
+  <text x="455" y="322" font-family="sans-serif" font-size="13" fill="#33312E">wᵢ</text>
+  <text x="500" y="345" font-family="sans-serif" font-size="14" fill="#33312E">multiplication by wᵢ</text>
+</svg>
+"""
+
 _BIO_BLOCKS = [
     {"md": _BIO_INTRO},
     {"svg": _SVG_NEURON,
@@ -869,6 +1071,11 @@ _BIO_BLOCKS = [
     {"md": _BIO_REASONING},
     {"svg": _SVG_MAP,
      "caption": "The correspondence. The artificial neuron keeps the computation — weighted sum, threshold, graded output, learning by changing connection strengths — and drops the biophysics and timing."},
+    {"md": _BIO_TLU},
+    {"svg": _SVG_TLU,
+     "caption": "The Threshold Logic Unit: each input is multiplied by its weight (the synapse), the SUM integrates them (the soma), and the threshold θ turns the total into a 1/0 output (the all-or-none action potential)."},
+    {"md": _BIO_RATE},
+    {"md": _BIO_SUMMARY},
     {"md": _BIO_COMPARE},
 ]
 

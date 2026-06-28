@@ -179,7 +179,7 @@ with tab_theory:
     intro = getattr(LESSON, "intro_blocks", None)  # tolerate stale hot-reloads
     if intro:
         lessons.render_intro(intro)
-    st.markdown(LESSON.theory)
+    st.markdown(LESSON.theory, unsafe_allow_html=True)  # §3 embeds inline SVG diagrams
 
 with tab_quiz:
     st.subheader("Self-check")
