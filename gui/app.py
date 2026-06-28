@@ -40,6 +40,8 @@ ANN_PAGES = [
     st.Page("views/attention.py", title="Attention (LLMs)", icon=":material/auto_awesome:"),
     st.Page("views/transformer.py", title="Tiny GPT", icon=":material/smart_toy:"),
     st.Page("views/sampling.py", title="Decoding (sampling)", icon=":material/casino:"),
+    st.Page("views/embeddings.py", title="Embeddings & RAG", icon=":material/database:"),
+    st.Page("views/posttraining.py", title="Post-training (RLHF)", icon=":material/psychology:"),
     st.Page("views/experiments.py", title="Experiments", icon=":material/science:"),
     st.Page("views/infobase.py", title="Infobase", icon=":material/menu_book:"),
     st.Page("views/tests.py", title="Tests", icon=":material/check_circle:"),

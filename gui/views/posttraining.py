@@ -1,0 +1,178 @@
+"""Post-training — from base LM to assistant (ANN module, roadmap e24–e26).
+
+The Tiny-GPT / nanoGPT objective gives a **base** language model: it knows language and
+facts but only *continues text*. Turning it into a helpful assistant (ChatGPT-style) takes
+two more phases — **supervised fine-tuning (SFT)** on instruction demos, then **preference
+tuning (RLHF / DPO)** on human rankings — done cheaply with **LoRA / PEFT**. This is a
+concepts page (diagrams + theory), the alignment half of the story.
+"""
+
+import pathlib
+import sys
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))   # gui/
+
+import streamlit as st
+
+import lessons
+
+
+_PIPELINE_SVG = '''<div style="text-align:center;margin:0.5rem 0"><svg viewBox="0 0 720 210" style="width:100%;max-width:720px;height:auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The post-training pipeline: pretraining on web text gives a base LM that knows language; supervised fine-tuning on instruction demonstrations makes it follow instructions; preference tuning with RLHF or DPO on human rankings makes it helpful, harmless and honest."><defs><marker id="pt" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 z" fill="#5B8FC2"/></marker></defs><rect x="1" y="1" width="718" height="208" rx="14" fill="#FAFAF7" stroke="#E2E2DA"/><g font-family="sans-serif"><rect x="22" y="50" width="190" height="86" rx="10" fill="#E6F1FB" stroke="#5B8FC2" stroke-width="1.6"/><rect x="266" y="50" width="190" height="86" rx="10" fill="#FBEAD6" stroke="#9A6A2A" stroke-width="1.6"/><rect x="510" y="50" width="190" height="86" rx="10" fill="#D7EFE5" stroke="#1D9E75" stroke-width="1.6"/><g text-anchor="middle" font-size="13"><text x="117" y="74" fill="#0C447C">1. Pretraining</text><text x="361" y="74" fill="#5A3E14">2. SFT</text><text x="605" y="74" fill="#0E5E45">3. Preference tuning</text></g><g text-anchor="middle" font-size="10" fill="#6B6A66"><text x="117" y="96">next-token on web text</text><text x="117" y="112">→ knows language &amp; facts</text><text x="117" y="128" fill="#9C9B95">("base model")</text><text x="361" y="96">(instruction → ideal answer)</text><text x="361" y="112">→ follows instructions</text><text x="361" y="128" fill="#9C9B95">("instruct model")</text><text x="605" y="96">human rankings (RLHF / DPO)</text><text x="605" y="112">→ helpful, harmless, honest</text><text x="605" y="128" fill="#9C9B95">("aligned assistant")</text></g></g><g stroke="#5B8FC2" stroke-width="2" fill="none"><line x1="212" y1="93" x2="264" y2="93" marker-end="url(#pt)"/><line x1="456" y1="93" x2="508" y2="93" marker-end="url(#pt)"/></g><g font-family="sans-serif" font-size="10" fill="#9C9B95" text-anchor="middle"><text x="238" y="86">+demos</text><text x="482" y="86">+prefs</text></g><text x="360" y="176" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#6B6A66">huge data · little supervision → small, curated data · careful supervision (cost shrinks left → right)</text><text x="360" y="196" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#9A6A2A">SFT and preference tuning are usually done with LoRA — adapting ~0.1–1% of the weights</text></svg></div>'''
+
+_LORA_SVG = '''<div style="text-align:center;margin:0.5rem 0"><svg viewBox="0 0 540 210" style="width:100%;max-width:540px;height:auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="LoRA: keep the big pretrained weight matrix W frozen, and learn a small low-rank update B times A (with rank r much smaller than the dimension), so the effective weight is W plus B A. Only the tiny B and A are trained."><rect x="1" y="1" width="538" height="208" rx="14" fill="#FAFAF7" stroke="#E2E2DA"/><rect x="40" y="50" width="110" height="110" rx="6" fill="#E3E6EA" stroke="#9C9B95" stroke-width="1.6"/><text x="95" y="100" text-anchor="middle" font-family="sans-serif" font-size="16" fill="#6B6A66">W</text><text x="95" y="120" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#6B6A66">frozen</text><text x="95" y="178" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#9C9B95">d × d (pretrained)</text><text x="172" y="110" text-anchor="middle" font-family="sans-serif" font-size="22" fill="#33312E">+</text><rect x="196" y="50" width="34" height="110" rx="5" fill="#FBEAD6" stroke="#9A6A2A" stroke-width="1.6"/><text x="213" y="110" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#5A3E14">B</text><text x="213" y="178" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#9A6A2A">d × r</text><rect x="234" y="50" width="110" height="34" rx="5" fill="#FBEAD6" stroke="#9A6A2A" stroke-width="1.6"/><text x="289" y="72" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#5A3E14">A</text><text x="289" y="100" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#9A6A2A">r × d  (r ≪ d)</text><text x="372" y="110" text-anchor="middle" font-family="sans-serif" font-size="20" fill="#33312E">=</text><rect x="398" y="50" width="120" height="110" rx="6" fill="#D7EFE5" stroke="#1D9E75" stroke-width="1.6"/><text x="458" y="104" text-anchor="middle" font-family="sans-serif" font-size="14" fill="#0E5E45">W + BA</text><text x="458" y="124" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#0E5E45">adapted</text><text x="270" y="198" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#9A6A2A">train only B and A (a few % of the weights) — W stays frozen</text></svg></div>'''
+
+
+_THEORY = r"""
+## 1. Two phases: pre-train, then align
+
+A from-scratch GPT (Tiny GPT / e21) learns one thing: **predict the next token**. That makes
+a **base model** that's fluent and knowledgeable — but it just *continues text*, it doesn't
+*follow instructions*. Turning it into a ChatGPT-style **assistant** takes a second,
+**post-training** stage. The full pipeline:
+
+<PIPELINE/>
+
+## 2. Pretraining — the base model
+
+Next-token cross-entropy on a web-scale corpus (the e21 objective, scaled to trillions of
+tokens). The model soaks up grammar, facts, styles, and reasoning patterns. Cost is
+enormous and data is plentiful but **unsupervised**. Ask a base model "What is the capital
+of France?" and it might *continue* with more questions rather than answer — it has the
+knowledge but not the **behaviour**.
+
+## 3. Transfer learning & fine-tuning
+
+You rarely train from scratch. **Fine-tuning** starts from the pretrained weights (which
+already encode useful features) and adapts them with **far less data** — the same idea as
+using ImageNet features for a new vision task. Post-training is fine-tuning aimed at
+*behaviour*, not new facts.
+
+## 4. SFT — supervised fine-tuning (instruction tuning)
+
+Fine-tune the base model on a curated set of **(instruction → ideal response)**
+demonstrations written by humans. It learns to **follow instructions** and adopt a helpful
+format/tone. Still plain next-token cross-entropy — just on demonstration data instead of
+raw web text. Output: an **instruct model**.
+
+## 5. Preference tuning — RLHF / DPO
+
+Demonstrations don't capture *which of two good answers is better*. So we learn from
+**human preferences**:
+- **RLHF** — humans **rank** model outputs; train a **reward model** to predict those
+  rankings; then optimize the LM (with **PPO**) to maximize reward, plus a **KL leash**
+  keeping it close to the SFT model so it doesn't drift into gibberish:
+  $$ \max_{\pi}\ \ \mathbb E\big[\,r(x,y)\,\big] \;-\; \beta\,\mathrm{KL}\!\big(\pi \,\|\, \pi_{\text{SFT}}\big). $$
+- **DPO** (Direct Preference Optimization) — skip the separate reward model and PPO loop;
+  optimize the preference objective **directly** with a simple classification-style loss.
+  Simpler and now very common.
+
+The result is an **aligned** model: more **helpful, harmless, and honest**.
+
+## 6. LoRA / PEFT — adapt cheaply
+
+Full fine-tuning updates **all** the weights — billions of numbers, huge memory. **LoRA**
+(Low-Rank Adaptation) instead **freezes** the pretrained matrix $W$ and learns a small
+**low-rank** update $\Delta W = BA$ (rank $r \ll d$), so the effective weight is $W + BA$:
+
+<LORA/>
+
+Only $B$ and $A$ are trained — often **~0.1–1%** of the parameters — which slashes memory and
+lets you keep many small, **swappable adapters** for different tasks on top of one frozen
+base. This is **PEFT** (parameter-efficient fine-tuning); SFT and preference tuning are
+usually done this way.
+
+## 7. RAG vs. fine-tuning (which problem?)
+
+- **Need facts** — fresh, proprietary, citable? → **RAG** (Embeddings page): retrieve and
+  put them in the prompt; no weight changes.
+- **Need behaviour** — a format, tone, skill, or following instructions? → **fine-tuning**
+  (SFT / preference tuning).
+
+They compose: a typical assistant is **pretrained → SFT → preference-tuned**, and then uses
+**RAG + tools** at inference for up-to-date facts.
+
+## 8. The honest caveats
+
+Post-training is mostly about **data quality** (good demos and clean preferences beat clever
+losses), alignment is **ongoing** (jailbreaks, reward hacking, sycophancy are open problems),
+and this is a **concepts** page — no training runs here. To actually train, scale the e21
+nanoGPT and add an SFT/DPO step. *(Roadmap e24–e26.)*
+"""
+
+_QUIZ = [
+    lessons.Question(
+        "A pretrained 'base' LM, before post-training, mainly…",
+        ["follows instructions well", "continues text — it's fluent and knowledgeable but not instruction-following",
+         "can't produce language", "is already aligned"], 1,
+        "Next-token pretraining gives fluency + knowledge; instruction-following and alignment come later (SFT, preference tuning)."),
+    lessons.Question(
+        "Supervised fine-tuning (SFT) trains the model on…",
+        ["random web text", "curated (instruction → ideal response) demonstrations",
+         "human rankings only", "images"], 1,
+        "SFT is next-token training on demonstration data, teaching the model to follow instructions."),
+    lessons.Question(
+        "RLHF / DPO use which signal?",
+        ["the next token only", "human preferences (rankings of outputs)",
+         "the learning rate", "the tokenizer"], 1,
+        "Preference tuning aligns the model to human rankings — RLHF via a reward model + PPO, DPO directly."),
+    lessons.Question(
+        "LoRA makes fine-tuning cheap by…",
+        ["using a bigger model", "freezing W and training only a small low-rank update B·A (~0.1–1% of params)",
+         "removing layers", "skipping the gradient"], 1,
+        "Low-rank adapters add W+BA with r≪d, so only B and A are trained — tiny, swappable."),
+    lessons.Question(
+        "Need the model to cite fresh, proprietary facts. Best tool?",
+        ["fine-tuning", "RAG (retrieve facts into the prompt)", "a bigger learning rate", "dropout"], 1,
+        "RAG supplies knowledge at query time; fine-tuning is for behaviour/style. They complement each other."),
+]
+
+_TASKS = r"""
+### Concept
+1. In one line each, say what **pretraining**, **SFT**, and **preference tuning** add to the model.
+2. Why does RLHF include a **KL penalty** keeping the model near the SFT model? What breaks
+   without it?
+3. Explain **LoRA** to someone who knows matrix multiply: what is frozen, what is trained,
+   and why it's cheap.
+
+### Decide
+4. For each, pick **RAG** or **fine-tuning**: (a) answer from today's news; (b) always reply
+   in your company's brand voice; (c) cite an internal policy doc; (d) reliably output valid JSON.
+
+### Build (stretch)
+5. Sketch how you'd add an **SFT** step to the e21 nanoGPT (data format, loss, what changes).
+"""
+
+_REFS = r"""
+- Ouyang et al. (2022) — *InstructGPT* (SFT + RLHF, the ChatGPT recipe).
+- Rafailov et al. (2023) — *Direct Preference Optimization (DPO)*.
+- Hu et al. (2021) — *LoRA*; Dettmers et al. (2023) — *QLoRA*.
+- Hugging Face — *TRL* (SFT/DPO/PPO) and *PEFT* libraries.
+- In this lab: **Tiny GPT** / **e21 nanoGPT** (pretraining), **Embeddings & RAG**
+  (facts vs behaviour), Math **X5** (cross-entropy / KL).
+"""
+
+
+st.title("Post-training — from base LM to assistant")
+st.caption("A from-scratch GPT only continues text. SFT + preference tuning (RLHF / DPO), "
+           "done cheaply with LoRA, turn it into a helpful assistant. (Concepts + diagrams.)")
+
+tab_theory, tab_quiz, tab_tasks, tab_ref = st.tabs(
+    ["📖 Theory", "❓ Self-check", "🛠 Tasks", "📚 References"]
+)
+
+with tab_theory:
+    st.markdown(_THEORY.replace("<PIPELINE/>", _PIPELINE_SVG).replace("<LORA/>", _LORA_SVG),
+                unsafe_allow_html=True)
+
+with tab_quiz:
+    st.subheader("Self-check")
+    st.caption("Instant feedback, no grading.")
+    lessons.render_quiz(_QUIZ, prefix="posttrain")
+
+with tab_tasks:
+    st.subheader("Tasks")
+    st.markdown(_TASKS)
+
+with tab_ref:
+    st.subheader("Reading & references")
+    st.markdown(_REFS)
