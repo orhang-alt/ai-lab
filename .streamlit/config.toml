@@ -1,0 +1,10 @@
+# The lab's GUI is designed for light mode (cream panels, light inline-SVG diagrams,
+# light gradients in gui/ui.py). Without this, Streamlit's "auto" theme follows the
+# visitor's system setting and renders dark widgets (e.g. the Module selector) on the
+# forced-light background — a mismatch. Pin light so every visitor sees the intended look.
+[theme]
+base = "light"
+primaryColor = "#2563eb"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#eef2f7"
+textColor = "#172033"
