@@ -14,6 +14,10 @@ import os
 import pathlib
 import sys
 
+# Matplotlib must use a non-GUI backend: Streamlit runs scripts on a worker thread, and the
+# macOS GUI backend refuses to create figures off the main thread. Set before any view loads.
+os.environ.setdefault("MPLBACKEND", "Agg")
+
 import streamlit as st
 
 # Make the lab root importable so `import core` works without `pip install -e .`
@@ -34,6 +38,8 @@ ANN_PAGES = [
     st.Page("views/optimizers.py", title="Optimizers", icon=":material/trending_down:"),
     st.Page("views/deep_playground.py", title="Deep nets (2D)", icon=":material/blur_on:"),
     st.Page("views/regularization.py", title="Regularization", icon=":material/tune:"),
+    st.Page("views/cnn.py", title="CNN (images)", icon=":material/image:"),
+    st.Page("views/rnn.py", title="RNN (sequences)", icon=":material/repeat:"),
     st.Page("views/neurons_compute.py", title="Neurons → computer", icon=":material/calculate:"),
     st.Page("views/the_chain.py", title="The big picture", icon=":material/route:"),
     st.Page("views/tokenization.py", title="Tokenization", icon=":material/content_cut:"),
