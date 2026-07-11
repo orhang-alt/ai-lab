@@ -157,8 +157,15 @@ with tab_play:
     if n == 1:
         st.caption("One input → the plot is the full response curve a(x₀); the dashed line is the threshold z=0.")
     elif n == 2:
-        st.info("Drag **only the bias** from the AND preset toward −0.5 and watch it become OR. "
-                "Then open the **Theory** tab for why.", icon=":material/lightbulb:")
+        lessons.predict(
+            "Load the **AND (step)** preset. Which **single** slider — moved which way — turns it "
+            "into **OR**? And why does only that one change the gate?",
+            "The **bias** `b`: drag it from −1.5 up toward −0.5. AND needs *both* inputs on to "
+            "cross the threshold; OR fires when *either* is on, so it needs a lower bar → raise `b`. "
+            "The **weights** set the boundary's orientation; the **bias** sets its offset — so `b` "
+            "alone slides the same line from the AND position to the OR position without rotating "
+            "it. (See Theory §2.)",
+        )
         with st.expander("Why these gates (AND, OR, XOR …)?"):
             st.markdown(
                 "Logic gates are the **smallest, exact tests** of what one neuron can do — "
@@ -198,6 +205,64 @@ with tab_tasks:
             st.session_state["sandbox_code"] = _TRY_PERCEPTRON
             st.switch_page("views/sandbox.py")
     st.markdown(LESSON.tasks)
+
+    st.divider()
+    st.markdown("#### ✅ Worked solutions")
+    st.caption("Attempt each task first, then check yourself — solo learning only works closed-loop.")
+    lessons.solution(
+        r"""**1.** Weights fix the boundary's *orientation*; the bias fixes its *offset*. AND and OR
+share the same direction $\mathbf w=[1,1]$ and differ only in where the line sits, so moving $b$
+alone slides AND → OR.
+
+**2.** NAND $=\lnot$AND: flip the signs → $\mathbf w=[-1,-1],\,b=1.5$. NOR $=\lnot$OR:
+$\mathbf w=[-1,-1],\,b=0.5$. Check: NAND$(1,1)=\text{step}(-2+1.5)=0$ ✓, NOR$(0,0)=\text{step}(0.5)=1$ ✓.
+
+**3.** Scaling $\mathbf w,b$ by $k$ drives sigmoid → step. The tightest corners have $|z|=0.5k$;
+for outputs within $0.01$ of $0/1$ you need $|z|\ge\ln 99\approx4.6$, so $k\gtrsim9.2$ — e.g.
+$\mathbf w=[9,9],\,b=-13.5$ ($\lVert\mathbf w\rVert\approx13$).""",
+        label="Warm-up 1–3",
+    )
+    lessons.solution(
+        r"""**4.** Boundary $x_0+2x_1-3=0$: crosses the $x_0$-axis at $(3,0)$ and the $x_1$-axis at $(0,1.5)$.
+
+**5.** Assume a separator exists. $(0,0){=}0\Rightarrow b<0$; the two 1-corners give $w_0+b>0$ and
+$w_1+b>0$; $(1,1){=}0\Rightarrow w_0+w_1+b<0$. Add the two middle inequalities:
+$w_0+w_1+2b>0\Rightarrow w_0+w_1+b>-b>0$ — contradicting $w_0+w_1+b<0$. So no line separates XOR.
+
+**6.** **XOR** and **XNOR** — the only 2 of the 16 two-input boolean functions that are not linearly separable.
+
+**7.** Augment $\tilde{\mathbf x}=(\mathbf x,1)$ and $\tilde{\mathbf w}=(\mathbf w,b)$. Then
+$\tilde{\mathbf w}\cdot\tilde{\mathbf x}=\mathbf w\cdot\mathbf x+b$ — the bias is just a weight on a constant-1 input.
+
+**8.** Signed distance $=(\mathbf w\cdot\mathbf x+b)/\lVert\mathbf w\rVert=(2+0-1)/\sqrt2=1/\sqrt2\approx0.707$.""",
+        label="Pencil & paper 4–8",
+    )
+    lessons.solution(
+        r"""**9.** (a) 30-layer hidden → **ReLU** (no saturation, cheap, avoids vanishing gradients).
+(b) binary output → **sigmoid** (gives $P(y{=}1)$). (c) 10-class output → **softmax** (a distribution).
+(d) output in $[-1,1]$ → **tanh**.
+
+**10.** $2\sigma(2z)-1=\dfrac{2}{1+e^{-2z}}-1=\dfrac{1-e^{-2z}}{1+e^{-2z}}=\dfrac{e^{z}-e^{-z}}{e^{z}+e^{-z}}=\tanh z$.
+
+**11.** $\sigma'(z)=\sigma(z)\,(1-\sigma(z))$, maximal at $z=0$ where $\sigma=0.5$, giving $0.25$.
+Backprop multiplies one $\sigma'\le0.25$ per layer, so 20 layers scale the gradient by
+$\le0.25^{20}\approx10^{-12}$ — vanishing gradients, and the early layers barely move.""",
+        label="Activations 9–11",
+    )
+    lessons.solution(
+        r"""**12.** Add `signed_distance(self, x)` returning `(self.w @ x + self.b) / np.linalg.norm(self.w)`;
+its test asserts $\approx0.707$ for $\mathbf w=[1,1],\,b=-1,\,\mathbf x=[2,0]$ (Task 8).
+
+**13.** Brute-force integer $\mathbf w\in[-2,2]^2,\,b\in[-2,2]$ over the 4 corners — you'll find a
+realization for every gate **except XOR / XNOR**.
+
+**14.** Perceptron rule: `w += lr*(y-pred)*x; b += lr*(y-pred)`. It converges on AND/OR because they
+are linearly separable (see experiment **e02**).
+
+**15.** A single neuron shatters at most $n+1=3$ points in 2D (VC dimension $=3$): the separable
+fraction stays $1.0$ for $k\le3$ and falls toward chance as $k\to4,5,6$.""",
+        label="Code & stretch 12–15",
+    )
 
 with tab_ref:
     st.subheader("Reading & references")

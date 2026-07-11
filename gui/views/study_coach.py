@@ -98,7 +98,7 @@ with tab_questions:
         default="Tier 2",
         key="study_coach_question_set",
     ) or "Tier 2"
-    st.markdown(lab.read_localized(qfiles[choice], LANG))
+    st.markdown(lab.read_localized(qfiles[choice], LANG), unsafe_allow_html=True)  # renders <details> answer keys
 
 with tab_checks:
     cfiles = {

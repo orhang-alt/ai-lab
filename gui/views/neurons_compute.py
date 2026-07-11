@@ -15,6 +15,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))  # gui/
 import pandas as pd
 import streamlit as st
 
+import lessons
 from core.neuron import Neuron
 
 # Each gate is one TLU neuron:  y = step(w·x − θ)
@@ -75,6 +76,13 @@ mode = st.segmented_control(
 ) or "Half adder (A + B)"
 
 if mode.startswith("Half"):
+    lessons.predict(
+        "You're about to set **A = 1** and **B = 1**. Before you tick the boxes — what will "
+        "**Sum** and **Carry** be?",
+        "**Carry = 1, Sum = 0.** In binary $1+1=2$, which is written `10` — so the Carry bit is 1 "
+        "and the Sum bit is 0. That's exactly **Carry = AND(1,1) = 1** and **Sum = XOR(1,1) = 0**: "
+        "the two neurons just added 1+1.",
+    )
     c1, c2 = st.columns(2)
     a = int(c1.checkbox("A = 1", key="ha_a"))
     b = int(c2.checkbox("B = 1", key="ha_b"))

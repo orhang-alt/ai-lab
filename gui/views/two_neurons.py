@@ -19,6 +19,7 @@ import pandas as pd
 import streamlit as st
 from matplotlib.colors import ListedColormap
 
+import lessons
 from core.neuron import Neuron
 
 CORNERS = np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=float)
@@ -34,6 +35,13 @@ def parallel():
     st.markdown("**Two neurons, same inputs, no link** — each draws its own line; together "
                 "they cut the plane into up to **4 regions** and give every point a 2-bit "
                 "code (A, B). This is exactly a hidden *layer* of width 2.")
+    lessons.predict(
+        "Two straight lines split the plane. **How many regions** can they carve at most — and why "
+        "does that help the *next* neuron?",
+        "**Four.** Two lines generically cross once, cutting the plane into 4 regions — so a layer "
+        "of 2 neurons stamps each input with one of 4 codes (0,0)/(0,1)/(1,0)/(1,1). That richer "
+        "code is exactly what a later neuron needs to separate **XOR**, which no single line can.",
+    )
     left, right = st.columns([0.42, 0.58])
     with left:
         act = st.selectbox("activation φ", ["step", "sigmoid"], key="tn_p_act")
@@ -85,6 +93,13 @@ def hidden_output():
     st.markdown(
         '''<div style="text-align:center;margin:0.3rem 0"><svg viewBox="0 0 460 200" style="width:100%;max-width:460px;height:auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two-neuron network: inputs x0 and x1 feed a hidden neuron h and also skip directly to the output neuron y; y combines x0, x1 and h to compute XOR."><defs><marker id="tnw" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 z" fill="#9C9B95"/></marker></defs><rect x="1" y="1" width="458" height="198" rx="14" fill="#FAFAF7" stroke="#E2E2DA"/><g stroke="#9C9B95" stroke-width="1.6" fill="none"><line x1="78" y1="62" x2="188" y2="62" marker-end="url(#tnw)"/><line x1="78" y1="150" x2="190" y2="80" marker-end="url(#tnw)"/><line x1="78" y1="62" x2="343" y2="101" marker-end="url(#tnw)"/><line x1="78" y1="150" x2="343" y2="120" marker-end="url(#tnw)"/><line x1="238" y1="72" x2="343" y2="106" marker-end="url(#tnw)"/><line x1="396" y1="110" x2="420" y2="110" marker-end="url(#tnw)"/></g><circle cx="55" cy="62" r="20" fill="#E6F1FB" stroke="#5B8FC2" stroke-width="1.6"/><circle cx="55" cy="150" r="20" fill="#E6F1FB" stroke="#5B8FC2" stroke-width="1.6"/><circle cx="215" cy="62" r="24" fill="#EFD3AE" stroke="#9A6A2A" stroke-width="2"/><circle cx="370" cy="110" r="24" fill="#D7EFE5" stroke="#1D9E75" stroke-width="2"/><g font-family="sans-serif" text-anchor="middle"><text x="55" y="67" font-size="13" fill="#0C447C">x₀</text><text x="55" y="155" font-size="13" fill="#0C447C">x₁</text><text x="215" y="67" font-size="14" fill="#5A3E14">h</text><text x="370" y="115" font-size="14" fill="#0E5E45">y</text><text x="215" y="30" font-size="10" fill="#9A6A2A">hidden feature</text><text x="370" y="152" font-size="10" fill="#0E5E45">output</text></g><text x="425" y="114" font-family="sans-serif" font-size="12" fill="#33312E">XOR</text></svg></div>''',
         unsafe_allow_html=True,
+    )
+    lessons.predict(
+        "With the **default** wiring below (hidden neuron = AND, output weight `u = −2`), predict "
+        "the output **y** at all four corners — (0,0), (0,1), (1,0), (1,1) — before you look. Is it XOR?",
+        "**0, 1, 1, 0 — yes, XOR.** The hidden AND-neuron fires *only* at (1,1). The output is "
+        "essentially **OR** of the two inputs, but `u = −2` lets the hidden unit **veto** the (1,1) "
+        "corner, flipping it from 1 back to 0. That veto is the new feature a single neuron cannot create.",
     )
     left, right = st.columns([0.42, 0.58])
     with left:

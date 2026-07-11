@@ -79,6 +79,22 @@ def render_intro(blocks: list) -> None:
                 st.caption(block["caption"])
 
 
+def predict(prompt: str, reveal: str) -> None:
+    """Predict-then-reveal: pose a question and hide the answer behind a click, so the
+    learner commits to a guess *before* seeing the result. The wrong guesses are what
+    make the idea stick (the generation effect). Reusable across every page."""
+    st.markdown(f"🔮 **Predict first —** {prompt}")
+    with st.expander("Reveal the answer"):
+        st.markdown(reveal)
+
+
+def solution(body: str, *, label: str = "Show worked solution") -> None:
+    """A collapsed worked solution — lets a solo learner attempt a task, then self-check.
+    Without this, the exercises are open-loop (no instructor to verify against)."""
+    with st.expander(f"✅ {label}"):
+        st.markdown(body)
+
+
 def render_lesson_content(lesson) -> None:
     """Render the 4 standard content tabs for a lesson (no interactive playground)."""
     t1, t2, t3, t4 = st.tabs(["📖 Theory", "❓ Self-check", "🛠 Tasks", "📚 References"])
