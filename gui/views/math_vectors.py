@@ -86,6 +86,31 @@ with tab_quiz:
 with tab_tasks:
     st.subheader("Tasks")
     st.markdown(LESSON.tasks)
+    st.divider()
+    st.markdown("#### ✅ Worked solutions")
+    st.caption("Attempt each first, then check.")
+    lessons.solution(
+        r"""**1.** Same direction: $\theta=0°$, $\cos\theta=1$, dot product is **maximal** ($=\lVert\mathbf w\rVert\lVert\mathbf x\rVert$). Perpendicular: $\theta=90°$, $\cos\theta=0$, dot product $=0$.
+
+**2.** Opposite: $\theta=180°$, $\cos\theta=-1$ → the dot product is **negative** (minimal).
+
+**3.** Doubling $\lVert\mathbf x\rVert$ leaves $\cos\theta$ **unchanged** (same direction) but **doubles** $\mathbf w\cdot\mathbf x$ (it scales with length).""",
+        label="Warm-up 1–3",
+    )
+    lessons.solution(
+        r"""**4.** $\lVert(3,4)\rVert=\sqrt{9+16}=5$. $\cos\theta$ between $(1,0)$ and $(1,1)$ $=\dfrac{1}{1\cdot\sqrt2}=\dfrac{1}{\sqrt2}\approx0.707$ (45°).
+
+**5.** $(1,2,3)\cdot(0,1,0)=0+2+0=2$. The one-hot vector zeroes every component except the 2nd, so the dot product **selects** that coordinate.
+
+**6.** $\mathbf a\cdot\mathbf b=\lVert\mathbf a\rVert\lVert\mathbf b\rVert\cos\theta$. If it's 0 with nonzero vectors then $\cos\theta=0\Rightarrow\theta=90°$ — the arrows are perpendicular.""",
+        label="Pencil & paper 4–6",
+    )
+    lessons.solution(
+        r"""**7–9.** `dot` / `norm` / `cosine_similarity` match `np.dot` / `np.linalg.norm`; a bag-of-words cosine ranker is a ~10-line search engine; and $\mathbf w\cdot\mathbf x=\lVert\mathbf w\rVert\lVert\mathbf x\rVert\cos\theta$ checks out numerically.
+
+**10.** A neuron's $z=\mathbf w\cdot\mathbf x+b$ is exactly your hand-computed dot product plus the bias — the Playground's $z$ equals it.""",
+        label="Code & bridge 7–10",
+    )
 
 with tab_ref:
     st.subheader("Reading & references")

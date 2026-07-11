@@ -154,6 +154,25 @@ with tab_quiz:
 with tab_tasks:
     st.subheader("Tasks")
     st.markdown(LESSON.tasks)
+    st.divider()
+    st.markdown("#### ✅ Worked solutions")
+    st.caption("Attempt each first, then check.")
+    lessons.solution(
+        r"""**1.** Fair die: $E[X]=3.5$; $E[X^2]=\frac{91}{6}$, so $\text{Var}=E[X^2]-E[X]^2=\frac{91}{6}-12.25=\frac{35}{12}\approx2.92$.
+
+**2.** Base rate $1/1000$ with a 99%-accurate test: $P(\text{sick}\mid+)=\dfrac{0.99\cdot0.001}{0.99\cdot0.001+0.01\cdot0.999}\approx\mathbf{9\%}$ — still low, because rare true positives are swamped by false positives.
+
+**3.** For Gaussian residuals, $\log\mathcal N(y\mid\hat y,\sigma^2)=-\frac{(y-\hat y)^2}{2\sigma^2}+\text{const}$; maximizing the sum $\Leftrightarrow$ minimizing $\sum(y-\hat y)^2$ — least squares **is** Gaussian MLE.
+
+**4.** Two fair flips: each of HH, HT, TH, TT has probability $1/4=\tfrac12\cdot\tfrac12=P(A)P(B)$ → **independent**.""",
+        label="Pencil & paper 1–4",
+    )
+    lessons.solution(
+        r"""**5–7.** A histogram of `np.random.normal` overlays its PDF; averaging $k=1,2,30$ uniforms shows the **CLT** (the average → Gaussian, spread → 0); Bayes' rule reproduces the ~9% answer.
+
+**8.** MSE ↔ **Gaussian MLE** (M1) and cross-entropy ↔ **Bernoulli/categorical MLE** (M2): the losses *are* negative log-likelihoods.""",
+        label="Code & bridge 5–8",
+    )
 with tab_ref:
     st.subheader("Reading & references")
     st.markdown(LESSON.references)

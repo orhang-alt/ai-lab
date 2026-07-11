@@ -114,6 +114,25 @@ with tab_quiz:
 with tab_tasks:
     st.subheader("Tasks")
     st.markdown(LESSON.tasks)
+    st.divider()
+    st.markdown("#### ✅ Worked solutions")
+    st.caption("Attempt each first, then check.")
+    lessons.solution(
+        r"""**1.** The max-margin line is the one with the widest gap to the nearest points of each class; the **support vectors** are exactly those nearest points that touch the margin.
+
+**2.** Moving a **support vector** shifts the boundary (they define it); moving a **far-away** point does nothing — only support vectors matter.
+
+**3.** Large **C** punishes margin violations hard → a **narrow** margin that can overfit; small **C** tolerates violations → a **wider**, more regularized margin (can underfit).""",
+        label="Pencil & paper 1–3",
+    )
+    lessons.solution(
+        r"""**4–6.** Linear SVC fails on XOR while **RBF** bends to fit; sweeping **C** / **γ** trades margin width vs. wiggliness; **standardizing** features first matters a lot for RBF (it works on distances).
+
+**7.** The optimization touches the data only through **dot products** $x_i\cdot x_j$. A kernel $K(x_i,x_j)$ returns that dot product in the mapped space *directly*, so you get a non-linear boundary **without** ever building the high-dimensional features — the kernel trick.
+
+**8.** RBF-SVM assumes **smoothness/locality**, a tree assumes **axis-aligned** structure, logistic assumes **linear separability** (so it fails on XOR). Same data, different inductive biases.""",
+        label="Code, concept & bridge 4–8",
+    )
 with tab_ref:
     st.subheader("Reading & references")
     st.markdown(LESSON.references)

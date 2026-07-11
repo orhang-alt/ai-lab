@@ -133,6 +133,29 @@ with tab_quiz:
 with tab_tasks:
     st.subheader("Tasks")
     st.markdown(LESSON.tasks)
+    st.divider()
+    st.markdown("#### ✅ Worked solutions")
+    st.caption("Attempt each first, then check.")
+    lessons.solution(
+        r"""**1.** Depth 1 underfits (a single axis split); test accuracy peaks after a few levels; very deep → train accuracy climbs toward 100% while **test** accuracy falls (it fences off single noisy points).
+
+**2.** More label noise → the best depth gets **shallower**: less capacity to memorize the noise.""",
+        label="Playground 1–2",
+    )
+    lessons.solution(
+        r"""**3.** Gini of $[8,2]$: $1-(0.8^2+0.2^2)=1-0.68=\mathbf{0.32}$.
+
+**4.** Parent Gini $=0.32$. Children: $[6,0]$ → Gini $0$ (weight $0.6$); $[2,2]$ → Gini $1-(0.5^2+0.5^2)=0.5$ (weight $0.4$). Weighted child $=0.6\cdot0+0.4\cdot0.5=0.20$. **Information gain $=0.32-0.20=0.12$.**
+
+**5.** A deep tree can isolate individual training points in their own leaves, so tiny data changes reshuffle the splits — **high variance**.""",
+        label="Pencil & paper 3–5",
+    )
+    lessons.solution(
+        r"""**6–8.** A Gini + best-split **stump**, then **bagging** 20 stumps on bootstrap samples cuts variance vs. a single tree; `sklearn`'s decision-tree / random-forest / gradient-boosting compare directly.
+
+**9.** Logistic regression draws one **straight** line, so it fails on XOR (not linearly separable); the tree's **axis-aligned staircase** can carve XOR out.""",
+        label="Code & bridge 6–9",
+    )
 with tab_ref:
     st.subheader("Reading & references")
     st.markdown(LESSON.references)

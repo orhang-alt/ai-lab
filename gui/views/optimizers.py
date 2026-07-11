@@ -261,6 +261,29 @@ with tab_quiz:
 with tab_tasks:
     st.subheader("Tasks")
     st.markdown(_TASKS)
+    st.divider()
+    st.markdown("#### ✅ Worked solutions")
+    st.caption("Attempt each first, then check.")
+    lessons.solution(
+        r"""**1.** **SGD** zig-zags across the steep axis; **Momentum** rolls almost straight down the valley; **Adam** usually reaches the minimum in the fewest steps (per-axis adaptation).
+
+**2.** Higher steepness $A$ worsens SGD's zig-zag (the steep axis dominates). Momentum still copes (it damps the oscillation) and Adam copes best (it rescales each axis independently).
+
+**3.** Crank the lr up and **SGD diverges** (flies off), while **Adam** often survives because its effective step shrinks where gradients are large. Tiny lr → everything crawls. Stability vs. speed is the whole trade-off.""",
+        label="Compare tab 1–3",
+    )
+    lessons.solution(
+        r"""**4.** Momentum: $v \leftarrow \mu v + g,\quad \theta \leftarrow \theta - \eta v$. On an oscillating axis the alternating-sign gradients partly **cancel** in $v$; on a steady axis they **accumulate**, so it damps oscillation *and* accelerates consistent descent.
+
+**5.** Adam divides the step by $\sqrt{\hat v}$ (a running mean of $g^2$). A direction with consistently **tiny** gradients has a tiny denominator, so its effective step is **boosted** — the flat axis of a ravine no longer gets neglected, which is exactly what SGD struggles with.""",
+        label="Pencil & paper 4–5",
+    )
+    lessons.solution(
+        r"""**6.** Swapping SGD ↔ Adam on the **MLP** page: Adam usually solves XOR in fewer epochs at the same lr.
+
+**7.** These are the exact updates in `core/optim.py`, and the ravine behavior is the **conditioning** story from Math **X4** — a poorly-conditioned (anisotropic) loss is what makes plain GD zig-zag.""",
+        label="Code / bridge 6–7",
+    )
 
 with tab_ref:
     st.subheader("Reading & references")

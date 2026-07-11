@@ -71,6 +71,23 @@ with tab_quiz:
 with tab_tasks:
     st.subheader("Tasks")
     st.markdown(LESSON.tasks)
+    st.divider()
+    st.markdown("#### ✅ Worked solutions")
+    st.caption("Attempt each first, then check.")
+    lessons.solution(
+        r"""**1.** Fair coin: $H=1$ bit. Fair 4-sided die: $H=\log_2 4=2$ bits. Coin with $p=0.9$: $H=-0.9\log_2 0.9-0.1\log_2 0.1\approx0.47$ bits (less uncertainty).
+
+**2.** $p=[1,0]$, $q=[0.7,0.3]$: $H(p,q)=-\sum p_i\log q_i=-\log(0.7)\approx0.357$ nats ($0.515$ bits).
+
+**3.** $H(p,q)=-\sum p\log q=\underbrace{-\sum p\log p}_{H(p)}+\underbrace{\sum p\log\tfrac pq}_{D_{KL}(p\Vert q)}$. $H(p)$ is fixed by the data, so minimizing cross-entropy minimizes $D_{KL}$ — it drives $q\to p$.""",
+        label="Pencil & paper 1–3",
+    )
+    lessons.solution(
+        r"""**4–5.** Verify $D_{KL}(p\Vert q)\ge0$ with equality iff $p=q$; and the loss $-\log q$ for a true positive **explodes** as $q\to0$ (confident-and-wrong is punished hardest).
+
+**6–7.** Cross-entropy here = the M2 logistic/softmax loss = ANN **e08** = MLE (X3 §7); and a decision tree's **information gain** (M3) is exactly entropy reduction.""",
+        label="Code & bridge 4–7",
+    )
 with tab_ref:
     st.subheader("Reading & references")
     st.markdown(LESSON.references)

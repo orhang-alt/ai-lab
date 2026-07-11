@@ -228,6 +228,23 @@ with tab_quiz:
 with tab_tasks:
     st.subheader("Tasks")
     st.markdown(_TASKS)
+    st.divider()
+    st.markdown("#### ✅ Worked solutions")
+    st.caption("Attempt each first, then check.")
+    lessons.solution(
+        r"""**1.** Greedy always takes the argmax (`mat`) → identical every run. Temperature at T=1.0 samples from the model's actual distribution → variety.
+
+**2.** High temperature (~1.6) lifts the implausible tail (`idea`, `purple`, `banana`); adding **Top-p = 0.9** cuts that tail back off by keeping only the smallest set of tokens whose probability sums to 0.9.
+
+**3.** On this **peaked** distribution Top-p = 0.9 may keep just 1–2 tokens (fewer than Top-k = 3). On a **flat** distribution Top-p adapts (keeps many) while Top-k is stuck at 3 — Top-p adjusts to the distribution's shape, Top-k doesn't.""",
+        label="Compare tab 1–3",
+    )
+    lessons.solution(
+        r"""**4.** Greedy maximizes each token *locally*, but the product of per-step argmaxes isn't the globally most-probable sentence — a slightly-lower token now can open a much higher-probability continuation. It also falls into repetition loops.
+
+**5.** Low temperature (or greedy) for factual/deterministic tasks — code, math, extraction. High temperature + top-p for creative, diverse generation where you want variety without the implausible tail.""",
+        label="Concept 4–5",
+    )
 
 with tab_ref:
     st.subheader("Reading & references")

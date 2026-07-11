@@ -258,6 +258,23 @@ with tab_quiz:
 with tab_tasks:
     st.subheader("Tasks")
     st.markdown(_TASKS)
+    st.divider()
+    st.markdown("#### ✅ Worked solutions")
+    st.caption("Attempt each first, then check.")
+    lessons.solution(
+        r"""**1.** Smallest $\lambda$: a **wiggly** boundary and a **large train–test gap** (overfit — high train accuracy, lower test). Largest $\lambda$: the boundary goes nearly straight (over-smoothed) and *both* accuracies drop (underfit).
+
+**2.** The $\lambda$ that maximizes **test** accuracy sits at (or very near) the peak of the sweep curve — that's the whole point of picking $\lambda$ on held-out data.
+
+**3.** Re-rolling the seed moves the sweet-spot $\lambda$ a bit — which is exactly why you **tune it on a validation set** each time rather than hard-coding a guess.""",
+        label="Tune tab 1–3",
+    )
+    lessons.solution(
+        r"""**4.** L2 here is literally **ridge** regression's penalty (ML M1/M6) and the same thing as **weight decay** in the ANN module; all three shrink weights to trade a little bias for a lot less variance — the right-hand side of the **M0** bias–variance picture.
+
+**5.** Two more: **dropout** (randomly zero activations during training so no unit is relied on) and **early stopping** (halt when validation loss starts rising). Also useful: data augmentation, and L1 when you want *sparsity*.""",
+        label="Bridge 4–5",
+    )
 
 with tab_ref:
     st.subheader("Reading & references")

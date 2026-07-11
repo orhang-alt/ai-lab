@@ -267,6 +267,29 @@ with tab_quiz:
 with tab_tasks:
     st.subheader("Tasks")
     st.markdown(_TASKS)
+    st.divider()
+    st.markdown("#### ✅ Worked solutions")
+    st.caption("Attempt each first, then check.")
+    lessons.solution(
+        r"""**1.** As the target moves away, $(a-y)$ grows, so $\partial L/\partial w = 2(a-y)\,a(1-a)\,x$ grows; one GD step then visibly drops the loss — you're hand-running gradient descent on a single neuron.
+
+**2.** When the output saturates ($a\to0$ or $1$) the factor $a(1-a)\to0$, so $\partial L/\partial z = 2(a-y)\,a(1-a)$ collapses toward 0 — the gradient nearly vanishes and the neuron barely learns. That's the vanishing-gradient effect, live.
+
+**3.** Chain rule: $\dfrac{\partial L}{\partial w} = \underbrace{2(a-y)}_{\partial L/\partial a}\cdot\underbrace{a(1-a)}_{\partial a/\partial z}\cdot\underbrace{x}_{\partial z/\partial w}$ — exactly `x · a(1−a) · 2(a−y)`.""",
+        label="Live tab 1–3",
+    )
+    lessons.solution(
+        r"""**4.** Write the shared upstream factor $g = 2(a-y)\,a(1-a) = \partial L/\partial z$. Then $\partial L/\partial b = g\cdot 1 = g$ (the bias sees a constant input 1) and $\partial L/\partial x = g\cdot w$. All three — $\partial L/\partial w,\ \partial L/\partial b,\ \partial L/\partial x$ — **share** that single backward value $\partial L/\partial z$, which is exactly why backprop computes it once and reuses it.
+
+**5.** For $z^{(1)}\!\to a^{(1)}\!\to z^{(2)}\!\to a^{(2)}\!\to L$: $\dfrac{\partial L}{\partial w^{(1)}} = \dfrac{\partial L}{\partial a^{(2)}}\cdot\dfrac{\partial a^{(2)}}{\partial z^{(2)}}\cdot w^{(2)}\cdot\dfrac{\partial a^{(1)}}{\partial z^{(1)}}\cdot x$ — the upstream gradient times each local derivative, multiplied back through the layers.""",
+        label="Pencil & paper 4–5",
+    )
+    lessons.solution(
+        r"""**6.** Rebuild the neuron with `core.engine.Value`, call `L.backward()`, and print `.grad` on `w`, `b`, `x` — they match the hand values from Tasks 3–4.
+
+**7.** Central difference $\dfrac{L(w+\epsilon)-L(w-\epsilon)}{2\epsilon}\approx\partial L/\partial w$ to $O(\epsilon^2)$; agreement to ~$10^{-6}$ is the gradient check (experiment **e06**). It verifies the *implementation*, not the math.""",
+        label="Code 6–7",
+    )
 
 with tab_ref:
     st.subheader("Reading & references")

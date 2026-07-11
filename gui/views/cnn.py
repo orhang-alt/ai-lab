@@ -211,6 +211,23 @@ with tab_quiz:
 with tab_tasks:
     st.subheader("Tasks")
     st.markdown(_TASKS)
+    st.divider()
+    st.markdown("#### ✅ Worked solutions")
+    st.caption("Attempt each first, then check.")
+    lessons.solution(
+        r"""**1.** The **vertical**-edge kernel lights up on vertical strokes (where intensity changes left↔right); the **horizontal** one on horizontal strokes. Each kernel correlates high only where the intensity change matches *its* orientation.
+
+**2.** **Blur** is an all-positive averaging kernel (a low-pass filter that smooths); **sharpen** is a positive centre with a negative surround (a high-pass filter that amplifies differences). Opposite signs → opposite effects.
+
+**3.** Max-pool keeps the strongest response in each 2×2 window: the map halves in size but the strong edges survive. That buys small-shift **invariance** and compression — the two things a CNN stacks between conv layers.""",
+        label="Convolve tab 1–3",
+    )
+    lessons.solution(
+        r"""**4.** Conv layer: $16\times(3\times3\times1) + 16 = 160$ params — and it's **independent of image size**. A fully-connected layer from a $32\times32=1024$ input to just 16 units already needs $1024\times16+16 = 16{,}400$, and it grows with the image. Weight-sharing is the huge saving.
+
+**5.** The *same* kernel slides over every position, so shifting the input shifts the output — **translation equivariance**. **Pooling** then discards small position differences, adding a degree of translation *invariance* on top.""",
+        label="Concept 4–5",
+    )
 
 with tab_ref:
     st.subheader("Reading & references")

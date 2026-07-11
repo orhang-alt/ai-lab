@@ -76,6 +76,27 @@ with tab_quiz:
 with tab_tasks:
     st.subheader("Tasks")
     st.markdown(LESSON.tasks)
+    st.divider()
+    st.markdown("#### ✅ Worked solutions")
+    st.caption("Attempt each first, then check.")
+    lessons.solution(
+        r"""**1.** `0.1 + 0.2` prints `0.30000000000000004` and `== 0.3` is **False** — 0.1/0.2/0.3 aren't exact in binary floating point, so the rounded sum differs. Compare with a tolerance (`abs(a-b) < 1e-9`), never `==`.
+
+**2.** `np.exp(1000)` → `inf`; naive softmax of `[1000,1001,1002]` → `inf/inf = NaN`. **Log-sum-exp** subtracts the max first (`[-2,-1,0]`) so `exp` stays finite, giving the correct `[0.09, 0.24, 0.67]`.
+
+**3.** The NumPy vectorized dot product runs in C over contiguous memory, so it's far faster than a Python loop — often 50–100×.""",
+        label="Try it 1–3",
+    )
+    lessons.solution(
+        r"""**4.** Subtracting two nearly-equal floats cancels the matching leading digits, leaving only noisy low-order bits — **catastrophic cancellation**. That's why $\text{Var}=E[x^2]-E[x]^2$ can go slightly negative numerically; the two-pass $E[(x-\bar x)^2]$ is stabler.
+
+**5.** Multiplying many probabilities **underflows** to 0; summing their **logs** keeps the magnitude representable (and turns products into sums), then exponentiate at the end if needed.""",
+        label="Pencil & paper 4–5",
+    )
+    lessons.solution(
+        r"""**6.** `core/activations.py`'s sigmoid/softmax use exactly this max-subtraction trick; the same care underlies e06 gradient checking and the fixed **seeds** used for reproducibility across the lab.""",
+        label="Bridge 6",
+    )
 with tab_ref:
     st.subheader("Reading & references")
     st.markdown(LESSON.references)

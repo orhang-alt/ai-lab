@@ -262,6 +262,27 @@ with tab_quiz:
 with tab_tasks:
     st.subheader("Tasks")
     st.markdown(_TASKS)
+    st.divider()
+    st.markdown("#### ✅ Worked solutions")
+    st.caption("Attempt each first, then check.")
+    lessons.solution(
+        r"""**1.** **cat** attends most to related tokens (other animals / itself); **sat** to verbs — because their learned query and key vectors have a high dot product (similarity).
+
+**2.** Low temperature → softmax **sharpens** onto the single top-scoring token (hard selection); high temperature → **flattens** toward uniform. It's the same softmax-temperature knob you meet again in decoding (X5).
+
+**3.** The bright 2×2 blocks are groups of related tokens attending to one another (animal↔animal, verb↔verb) — attention has grouped the sentence by relationship.""",
+        label="Live tab 1–3",
+    )
+    lessons.solution(
+        r"""**4.** Scores $q\cdot k$: $q\cdot k_1=1$, $q\cdot k_2=0$, $q\cdot k_3=-1$. Ranked $k_1 > k_2 > k_3$, so value $v_1$ is blended in most (and $v_3$ least).
+
+**5.** Attention connects any two positions in **one** step (a direct dot product), whereas an RNN must carry information through many sequential steps where it decays — so attention captures long-range dependencies far better.""",
+        label="Pencil & paper 4–5",
+    )
+    lessons.solution(
+        r"""**6.** Attention *is* these composed: **dot product** (Math X1) scores similarity → **softmax** (X5) turns scores into weights → a **weighted sum** of values; training it uses **cross-entropy** (M2 / X5) on the next token. Nothing new — just the pieces you already have, wired together.""",
+        label="Bridge 6",
+    )
 
 with tab_ref:
     st.subheader("Reading & references")

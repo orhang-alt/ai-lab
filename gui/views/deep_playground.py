@@ -235,6 +235,23 @@ with tab_quiz:
 with tab_tasks:
     st.subheader("Tasks")
     st.markdown(_TASKS)
+    st.divider()
+    st.markdown("#### ✅ Worked solutions")
+    st.caption("Attempt each first, then check.")
+    lessons.solution(
+        r"""**1.** `2 × 16` gives a cleaner boundary on two-moons *up to a point*; past what the data needs, the extra capacity just adds wiggle (it starts tracing noise).
+
+**2.** The spiral needs real depth/width — roughly `2 × 16` or more before it separates cleanly. As you add capacity, watch **test** accuracy plateau then dip while **train** keeps rising: that gap is overfitting.
+
+**3.** **ReLU** gives a piecewise-linear, faceted boundary (made of straight kinks); **tanh** gives a smoother, curved one — same data, different function class.
+
+**4.** Crank the noise up and even a big network's **test** accuracy falls: with enough capacity it memorizes the noisy points (train stays high, test drops) — the definition of overfitting.""",
+        label="Train tab 1–4",
+    )
+    lessons.solution(
+        r"""**5.** It's the same MLP as the **MLP** page (there on XOR, on the lab's own engine), trained by the ideas on the **Optimizers** page, and it *is* the bias–variance / capacity story made visual — **M0** (over/underfitting) and **M7** (practical control of it).""",
+        label="Bridge 5",
+    )
 
 with tab_ref:
     st.subheader("Reading & references")

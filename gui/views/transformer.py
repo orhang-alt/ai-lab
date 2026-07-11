@@ -291,6 +291,27 @@ with tab_quiz:
 with tab_tasks:
     st.subheader("Tasks")
     st.markdown(_TASKS)
+    st.divider()
+    st.markdown("#### ✅ Worked solutions")
+    st.caption("Attempt each first, then check.")
+    lessons.solution(
+        r"""**1.** After `the ` the model expects the characters that most often follow it in the corpus (a space, then common letters) — its distribution mirrors the training text's statistics.
+
+**2.** Low temperature (≈0.4) → safe, repetitive text (it keeps picking high-probability characters); high (≈1.3) → wilder, noisier. It's the same softmax temperature as the Attention page (X5), applied to the next-token distribution.
+
+**3.** There's a sweet spot because too-low temperature loops on the single most likely character, while too-high is near-random gibberish; a middle value balances coherence and variety → the most word-like output.""",
+        label="Live tab 1–3",
+    )
+    lessons.solution(
+        r"""**4.** A residual connection outputs $x + f(x)$, so gradients flow straight through the identity path to earlier layers — they don't vanish through 50 stacked blocks. That's the vanishing-gradient fix from ANN §6.
+
+**5.** The causal mask is **lower-triangular**: for a length-4 sequence, entry $(i,j)$ is allowed when $j\le i$ and set to $-\infty$ (→ 0 weight after softmax) when $j>i$, so a token can never attend to a **future** token.""",
+        label="Concept 4–5",
+    )
+    lessons.solution(
+        r"""**6.** End to end: **dot product (X1)** scores similarity → **softmax (X5)** makes weights → **attention** mixes values → a **block** wraps it with a residual + LayerNorm + MLP → stack the blocks and train on **next-token cross-entropy (M2/X5)**. That stack *is* a GPT.""",
+        label="Bridge 6",
+    )
 
 with tab_ref:
     st.subheader("Reading & references")

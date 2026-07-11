@@ -90,6 +90,27 @@ with tab_quiz:
 with tab_tasks:
     st.subheader("Tasks")
     st.markdown(LESSON.tasks)
+    st.divider()
+    st.markdown("#### ✅ Worked solutions")
+    st.caption("Attempt each first, then check.")
+    lessons.solution(
+        r"""**1.** GD diverges once $\eta$ exceeds $1/\text{(largest curvature)}$; below that it converges, and a tiny $\eta$ just crawls. (Along a unit-curvature axis it's stable for $\eta<1$.)
+
+**2.** High anisotropy makes a ravine, so the step is dominated by the steep axis → **zig-zag**. Feature scaling (M7) makes the axes comparable → a rounder bowl → straighter descent.""",
+        label="Playground 1–2",
+    )
+    lessons.solution(
+        r"""**3.** $L=w^2$, $\nabla=2w$, so $w\leftarrow w(1-2\eta)$. With $\eta=0.1,\,w_0=4$: $w_1=3.2,\ w_2=2.56,\ w_3=2.048$.
+
+**4.** Converges when $|1-2\eta|<1\Rightarrow 0<\eta<1$. At $\eta=0.5$ it lands on the minimum in one step; $\eta>1$ diverges.""",
+        label="Pencil & paper 3–4",
+    )
+    lessons.solution(
+        r"""**5–6.** GD on $x^2+10y^2$ zig-zags down the $y$-ravine; adding **momentum** cuts the step count sharply.
+
+**7.** Backprop computes $\nabla L$; this update changes the weights. Nets use **SGD** (mini-batches): noisier but far cheaper per step, and the noise helps escape shallow minima — which is why it beats full-batch at scale.""",
+        label="Code & bridge 5–7",
+    )
 with tab_ref:
     st.subheader("Reading & references")
     st.markdown(LESSON.references)

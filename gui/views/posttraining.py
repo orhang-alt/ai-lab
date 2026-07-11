@@ -177,6 +177,25 @@ with tab_quiz:
 with tab_tasks:
     st.subheader("Tasks")
     st.markdown(_TASKS)
+    st.divider()
+    st.markdown("#### ✅ Worked solutions")
+    st.caption("Attempt each first, then check.")
+    lessons.solution(
+        r"""**1.** **Pretraining**: broad next-token knowledge from raw text. **SFT**: teaches instruction-following *format* from curated prompt→response pairs. **Preference tuning** (RLHF/DPO): aligns *which* response is preferred (helpful, harmless).
+
+**2.** The **KL penalty** keeps the tuned model close to the SFT model so it can't "reward-hack" — drift into degenerate, high-reward-model-scoring gibberish. Without it, fluency and diversity collapse as the policy games the reward.
+
+**3.** **LoRA**: freeze the big pretrained matrix $W$ and add a low-rank update $\Delta W = A B$ with $A\!\in\!\mathbb{R}^{d\times r}$, $B\!\in\!\mathbb{R}^{r\times d}$, $r\ll d$. Only $A,B$ train — orders of magnitude fewer parameters, cheap memory, and you can hot-swap adapters.""",
+        label="Concept 1–3",
+    )
+    lessons.solution(
+        r"""**4.** (a) today's news → **RAG** (freshness, no retrain). (b) brand voice → **fine-tuning** (a behavior/style). (c) cite an internal policy doc → **RAG** (retrieve + ground + cite). (d) reliably valid JSON → **fine-tuning** (a consistent output format).""",
+        label="Decide 4",
+    )
+    lessons.solution(
+        r"""**5.** Add SFT to e21: feed **(prompt, response)** pairs instead of raw text, and **mask the loss to the response tokens only** (don't train on predicting the prompt). Same cross-entropy objective, same architecture — only the data and the loss mask change.""",
+        label="Build (stretch) 5",
+    )
 
 with tab_ref:
     st.subheader("Reading & references")

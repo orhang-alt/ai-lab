@@ -113,6 +113,33 @@ with tab_quiz:
 with tab_tasks:
     st.subheader("Tasks")
     st.markdown(LESSON.tasks)
+    st.divider()
+    st.markdown("#### ✅ Worked solutions")
+    st.caption("Attempt each first, then check.")
+    lessons.solution(
+        r"""**1.** Your eyeball fit lands close but rarely beats **Fit** — least squares is the exact minimum of the MSE bowl.
+
+**2.** At σ = 0 the points lie exactly on a line, so $R^2 = 1$ (all variance explained). As noise rises, more variance is unexplained and $R^2$ falls.
+
+**3.** Few points + high noise + different seeds → the fitted line **swings** a lot: small samples give high-variance estimates.""",
+        label="Warm-up 1–3",
+    )
+    lessons.solution(
+        r"""**4.** MSE $=\frac1n\lVert y - X\boldsymbol\beta\rVert^2$. Set $\partial/\partial\boldsymbol\beta = -\frac2n X^\top(y - X\boldsymbol\beta) = 0 \Rightarrow X^\top X\boldsymbol\beta = X^\top y$ — the **normal equations**.
+
+**5.** One feature: minimizing $\sum (y_i-(wx_i+b))^2$ gives $b=\bar y - w\bar x$ and $w=\operatorname{cov}(x,y)/\operatorname{var}(x)$.
+
+**6.** $\hat y = X\boldsymbol\beta$ ranges over $\text{span}(X)$; least squares picks the point in that span closest to $y$, so the residual $y-\hat y$ is **perpendicular** to $\text{span}(X)$ — $\hat y$ is the orthogonal projection of $y$.""",
+        label="Pencil & paper 4–6",
+    )
+    lessons.solution(
+        r"""**7–8.** `np.linalg.lstsq` and $(X^\top X)^{-1}X^\top y$ agree; gradient descent on the MSE converges to that same OLS solution.
+
+**9–10.** Features $[x,x^2,x^3]$ fit curves with the *same linear* solver (it's linear in the weights); a ridge penalty $\lambda$ shrinks every weight toward 0 as $\lambda$ grows.
+
+**11.** A **linear neuron + MSE** (ANN Tier 1) trained on the same data converges to the OLS line — where the two modules meet.""",
+        label="Code & bridge 7–11",
+    )
 
 with tab_ref:
     st.subheader("Reading & references")

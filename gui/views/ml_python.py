@@ -193,6 +193,19 @@ with tab_quiz:
 with tab_tasks:
     st.subheader("Tasks")
     st.markdown(LESSON.tasks)
+    st.divider()
+    st.markdown("#### ✅ Worked solutions")
+    st.caption("Attempt each first, then check.")
+    lessons.solution(
+        r"""**Scaling.** SVM and logistic regression are distance/gradient-based, so they **need** feature scaling; tree-based models (random forest, gradient boosting) split one feature at a time and are **scale-invariant**.
+
+**Swapping models.** Every estimator shares `fit` / `predict` / `score`, so `LogisticRegression` → `RandomForestClassifier` is a **one-line** change — the rest of the scaffold is identical.
+
+**Tuning & pipelines.** Wrap `GridSearchCV` around the estimator and read `best_params_`. Put scaling + one-hot in a `ColumnTransformer` **inside** a `Pipeline` so every CV fold transforms on *training* data only — that's what prevents leakage.
+
+**Save/load.** `joblib.dump` the fitted pipeline, reload it, and `predict` returns identical results — the same object you'd ship to production.""",
+        label="Worked notes",
+    )
 
 with tab_ref:
     st.subheader("Reading & references")

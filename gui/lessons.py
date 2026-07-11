@@ -95,8 +95,10 @@ def solution(body: str, *, label: str = "Show worked solution") -> None:
         st.markdown(body)
 
 
-def render_lesson_content(lesson) -> None:
-    """Render the 4 standard content tabs for a lesson (no interactive playground)."""
+def render_lesson_content(lesson, solutions=None) -> None:
+    """Render the 4 standard content tabs for a lesson (no interactive playground).
+    Pass `solutions` as a list of (label, body) tuples to add collapsible worked
+    answers under the Tasks tab."""
     t1, t2, t3, t4 = st.tabs(["📖 Theory", "❓ Self-check", "🛠 Tasks", "📚 References"])
     with t1:
         st.markdown(lesson.theory, unsafe_allow_html=True)
@@ -107,6 +109,12 @@ def render_lesson_content(lesson) -> None:
     with t3:
         st.subheader("Tasks")
         st.markdown(lesson.tasks)
+        if solutions:
+            st.divider()
+            st.markdown("#### ✅ Worked solutions")
+            st.caption("Attempt each first, then check.")
+            for label, body in solutions:
+                solution(body, label=label)
     with t4:
         st.subheader("Reading & references")
         st.markdown(lesson.references)

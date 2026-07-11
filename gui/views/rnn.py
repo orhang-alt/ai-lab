@@ -211,6 +211,25 @@ with tab_quiz:
 with tab_tasks:
     st.subheader("Tasks")
     st.markdown(_TASKS)
+    st.divider()
+    st.markdown("#### ✅ Worked solutions")
+    st.caption("Attempt each first, then check.")
+    lessons.solution(
+        r"""**1.** At $w_h=0.2$ the state decays as $0.2^n$ → ≈0 in ~3–4 steps (short memory). At $w_h=0.9$ it decays as $0.9^n$ → lingers ~20+ steps. Memory length grows with $w_h$ (roughly $1/(1-w_h)$).
+
+**2.** With $w_h>1$ the *state* still saturates at tanh's $\pm1$ limits (bounded output) — but the **gradient** isn't squashed the same way, so across steps it multiplies by $>1$ and **explodes**.
+
+**3.** At $w_h\approx0$, $h_t\approx\tanh(w_x x_t)$: no memory at all — the RNN collapses to a plain per-step neuron on the current input.""",
+        label="Live tab 1–3",
+    )
+    lessons.solution(
+        r"""**4.** Unrolled: $h_1=\tanh(W_x x_1 + W_h h_0)$, $h_2=\tanh(W_x x_2 + W_h h_1)$, $h_3=\tanh(W_x x_3 + W_h h_2)$ — the **same $W_h$** appears at every step. Backprop-through-time multiplies by $W_h$ (and $\tanh'$) once per step, giving a factor $\approx W_h^{\,k}$: $<1$ **vanishes**, $>1$ **explodes**.
+
+**5.** **Forget** gate: how much of the old cell state to keep. **Input** gate: how much of the new candidate to write. **Output** gate: how much of the cell to expose as the hidden state.
+
+**6.** Streaming / online inference on very long or unbounded sequences: an RNN keeps $O(1)$ state per step, whereas full attention is $O(n^2)$ in sequence length — so for tiny-memory or endless streams, recurrence still wins.""",
+        label="Concept 4–6",
+    )
 
 with tab_ref:
     st.subheader("Reading & references")

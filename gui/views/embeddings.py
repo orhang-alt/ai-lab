@@ -215,6 +215,23 @@ with tab_quiz:
 with tab_tasks:
     st.subheader("Tasks")
     st.markdown(_TASKS)
+    st.divider()
+    st.markdown("#### ✅ Worked solutions")
+    st.caption("Attempt each first, then check.")
+    lessons.solution(
+        r"""**1.** The learning / backprop / gradient facts rank on top, with cosine scores that track how many meaningful words they share with the query.
+
+**2.** An out-of-KB question (e.g. the Mona Lisa) returns uniformly **low** scores — nothing is close. A real RAG system should answer *"not in my sources"* rather than fabricate a grounded-sounding guess.
+
+**3.** A paraphrase that uses **different words** misses, because TF-IDF matches shared *words*, not meaning. Closing that gap is exactly what **learned semantic** embeddings do — they place synonyms and paraphrases near each other.""",
+        label="Retrieve tab 1–3",
+    )
+    lessons.solution(
+        r"""**4.** RAG in four steps: **index** (embed every document once) → **retrieve** (embed the query, find nearest by cosine) → **augment** (paste the top hits into the prompt) → **generate** (the LLM answers grounded in them).
+
+**5.** **RAG** when the knowledge is large, changing, or must be cited (docs, news, policies) — you don't retrain, just re-index. **Fine-tuning** when you want a *behavior/style/format* baked in. They compose: fine-tune the voice, RAG the facts.""",
+        label="Concept 4–5",
+    )
 
 with tab_ref:
     st.subheader("Reading & references")

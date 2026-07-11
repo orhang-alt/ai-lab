@@ -85,6 +85,31 @@ with tab_quiz:
 with tab_tasks:
     st.subheader("Tasks")
     st.markdown(LESSON.tasks)
+    st.divider()
+    st.markdown("#### ✅ Worked solutions")
+    st.caption("Attempt each first, then check.")
+    lessons.solution(
+        r"""**1.** With 3 true blobs, **k = 2** merges two of them (higher inertia than needed); **k = 4** splits one blob (inertia keeps dropping but the extra cluster is spurious). k = 3 looks right — the elbow.
+
+**2.** As overlap grows, k-means starts mis-assigning boundary points (it only knows distance to centroids, not the true blob shapes).
+
+**3.** Different seeds can land in different local optima — that's k-means' **initialization sensitivity** (why k-means++ / multiple restarts exist).""",
+        label="Playground 1–3",
+    )
+    lessons.solution(
+        r"""**4.** One step: **assign** each point to its nearest centroid, then **move** each centroid to the mean of its assigned points; repeat until assignments stop changing.
+
+**5.** Adding a centroid can only keep or shrink each point's distance to its nearest centroid, so **inertia never increases** with k (it hits 0 at k = n). Minimizing it alone just picks k = n — useless; use the elbow / silhouette.
+
+**6.** Silhouette $=(b-a)/\max(a,b)=(3-1)/3=\mathbf{0.67}$ — comfortably inside its own cluster.""",
+        label="Pencil & paper 4–6",
+    )
+    lessons.solution(
+        r"""**7–9.** A NumPy assign/update loop + the **elbow** curve; PCA via `np.linalg.svd` with explained-variance; `sklearn`'s KMeans / DBSCAN / PCA compare on the same data.
+
+**10.** PCA's components are the **eigenvectors of the covariance matrix** (equivalently the right singular vectors from SVD) — exactly the vectors / projection / SVD material in Math **X1**.""",
+        label="Code & bridge 7–10",
+    )
 with tab_ref:
     st.subheader("Reading & references")
     st.markdown(LESSON.references)

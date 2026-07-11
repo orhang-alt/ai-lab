@@ -74,6 +74,25 @@ with tab_quiz:
 with tab_tasks:
     st.subheader("Tasks")
     st.markdown(LESSON.tasks)
+    st.divider()
+    st.markdown("#### ✅ Worked solutions")
+    st.caption("Attempt each first, then check.")
+    lessons.solution(
+        r"""**1.** $\frac{d}{dx}3x^4=12x^3$; $\frac{d}{dx}\sin x=\cos x$; $\frac{d}{dx}e^{2x}=2e^{2x}$; $\frac{d}{dx}(5x^2+2x-1)=10x+2$.
+
+**2.** $\frac{d}{dx}(3x+1)^5=5(3x+1)^4\cdot3=15(3x+1)^4$; $\frac{d}{dx}e^{-x^2}=-2x\,e^{-x^2}$.
+
+**3.** $\partial f/\partial x=2xy$, $\partial f/\partial y=x^2+3y^2$. At $(1,2)$: $\nabla f=(4,\,13)$.
+
+**4.** $\nabla(x^2+y^2)=(2x,2y)=2(x,y)$ — at every point it points **radially outward** from the origin (steepest ascent of the bowl).""",
+        label="Pencil & paper 1–4",
+    )
+    lessons.solution(
+        r"""**5–6.** The central difference $\frac{f(x+h)-f(x-h)}{2h}$ matches $\frac{d}{dx}x^2=2x$ (the e06 gradient check); the tangent to $x^2$ at $x=2$ has slope 4.
+
+**7.** Backprop *is* the chain rule: for a 2-layer net, $\partial L/\partial w^{(1)}$ is the product of local derivatives from the loss back through layer 2's activation and weights into layer 1 (see the **Backprop** page).""",
+        label="Code & bridge 5–7",
+    )
 with tab_ref:
     st.subheader("Reading & references")
     st.markdown(LESSON.references)

@@ -96,6 +96,31 @@ with tab_quiz:
 with tab_tasks:
     st.subheader("Tasks")
     st.markdown(LESSON.tasks)
+    st.divider()
+    st.markdown("#### ✅ Worked solutions")
+    st.caption("Attempt each first, then check.")
+    lessons.solution(
+        r"""**1.** Degree 1 is a straight line → **underfit** (high train *and* test error). Degree 12 wiggles through every point → **overfit** (tiny train error, large test error).
+
+**2.** The best degree roughly matches the data's true complexity. Raise the **noise** and the best degree *drops* — with noisier data a simpler model generalizes better.
+
+**3.** A smaller train fraction gives the flexible model fewer points to pin it down → **more overfitting** and higher test error. More data is the cheapest regularizer.""",
+        label="Warm-up 1–3",
+    )
+    lessons.solution(
+        r"""**4.** spam detection → supervised **classification**; grouping customers → unsupervised **clustering**; game-playing bot → **reinforcement learning**; tomorrow's temperature → supervised **regression**.
+
+**5.** The test set is your only estimate of *unseen* performance. Peek and tune to it and you've fit to it — it stops being unseen and the estimate turns optimistic. Touch it **once**, at the very end.
+
+**6.** $\mathbb{E}[(\hat y - y)^2] = \text{Bias}^2 + \text{Variance} + \sigma^2$ (irreducible noise). Regularization trades a little bias to cut the **variance** term.""",
+        label="Pencil & paper 4–6",
+    )
+    lessons.solution(
+        r"""**7–9.** Use `sklearn.model_selection` (`train_test_split`, `KFold`); reproduce the U-curve by plotting train vs test MSE over degrees 1→12, and a learning curve of error vs training-set size.
+
+**10.** A degree-1 polynomial fit *is* least-squares linear regression — the same line the ANN module's linear neuron + MSE converges to on the same data.""",
+        label="Code & bridge 7–10",
+    )
 
 with tab_ref:
     st.subheader("Reading & references")

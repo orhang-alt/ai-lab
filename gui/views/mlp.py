@@ -271,6 +271,31 @@ with tab_quiz:
 with tab_tasks:
     st.subheader("Tasks")
     st.markdown(_TASKS)
+    st.divider()
+    st.markdown("#### ✅ Worked solutions")
+    st.caption("Attempt each first, then check.")
+    lessons.solution(
+        r"""**1.** At the defaults it reaches **4/4**; the loss drops fastest early, once the hidden units first orient their lines — then it flattens as it fine-tunes.
+
+**2.** Yes — **2 hidden units** is the theoretical minimum for XOR, but some seeds get stuck (a "dead" unit / bad local basin), so a few re-seeds may be needed. That fragility is why real nets use more units than the bare minimum.
+
+**3.** Too-large a learning rate makes the loss oscillate or blow up (diverge); back it off just below that edge for the fastest stable training.
+
+**4.** **Adam** typically reaches a low loss in noticeably fewer steps than plain SGD at the same lr — it adapts a per-parameter step.""",
+        label="Train tab 1–4",
+    )
+    lessons.solution(
+        r"""**5.** A `2 → h → 1` tanh MLP has layer 1 = $h(2+1)=3h$ params and layer 2 = $1\,(h+1)=h+1$, so **$4h+1$** total (e.g. $h=2\Rightarrow 9$).
+
+**6.** Each hidden neuron draws a line. Orient one to fire on the (0,1)/(1,0) diagonal band and use the output neuron to keep points inside that band — fencing off the two positive corners while excluding (0,0) and (1,1). That "build a feature, then separate it" is exactly the *Two neurons* XOR construction, now learned.""",
+        label="Pencil & paper 5–6",
+    )
+    lessons.solution(
+        r"""**7.** In the Sandbox, build `core.nn.MLP(2,[h,1])` + `core.optim.SGD`, run forward → MSE → `loss.backward()` → `opt.step()` each epoch — that's experiment **e05**.
+
+**8.** The loop is exactly **Backprop** (which fills every `.grad`) + **Math X4** (the optimizer step that uses them). Those two pages *are* this training loop.""",
+        label="Code / bridge 7–8",
+    )
 
 with tab_ref:
     st.subheader("Reading & references")

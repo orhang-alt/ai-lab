@@ -244,6 +244,23 @@ with tab_quiz:
 with tab_tasks:
     st.subheader("Tasks")
     st.markdown(_TASKS)
+    st.divider()
+    st.markdown("#### ✅ Worked solutions")
+    st.caption("Attempt each first, then check.")
+    lessons.solution(
+        r"""**1.** merges = 0 → pure characters. The **most frequent adjacent pairs** win first (e.g. `t`+`h` → `th`, then common endings) — BPE greedily merges the commonest pair each round.
+
+**2.** After enough merges a common word like `the` collapses to a **single** token; as merges rise, your text's **token count drops** (fewer, longer tokens).
+
+**3.** An out-of-corpus word falls back to the **sub-word pieces / characters** BPE already knows, so it's always representable — there's no `<unk>`. That's BPE's headline advantage.""",
+        label="Tokenize tab 1–3",
+    )
+    lessons.solution(
+        r"""**4.** **Character**: tiny vocab, zero OOV, but long sequences and little meaning per token. **Word**: meaningful and short, but a huge vocab and an OOV problem. **Sub-word (BPE)**: the balance — modest fixed vocab, no OOV, reasonable sequence length.
+
+**5.** The model consumes **tokens**, not words: compute and context window are per-token, and one word may be several tokens (or a token may span parts of words). Tokens are the true unit of cost, so length and price are measured in them.""",
+        label="Concept 4–5",
+    )
 
 with tab_ref:
     st.subheader("Reading & references")

@@ -102,6 +102,23 @@ with tab_quiz:
 with tab_tasks:
     st.subheader("Tasks")
     st.markdown(LESSON.tasks)
+    st.divider()
+    st.markdown("#### ✅ Worked solutions")
+    st.caption("Attempt each first, then check.")
+    lessons.solution(
+        r"""**1.** 5-fold CV on 1000 rows trains **5** models; each uses **800** rows to train and **200** to validate (a different 200 per fold).
+
+**2.** High-bias: train and validation error both plateau **high** and close together (underfit). High-variance: **low** train error but a **large gap** to validation error (overfit).
+
+**3.** The **one-standard-error rule**: among models within 1 SE of the best CV score, pick the **simplest**. They're statistically indistinguishable from the best, so the simpler one is less likely to have overfit the CV noise.""",
+        label="Pencil & paper 1–3",
+    )
+    lessons.solution(
+        r"""**4–7.** Hand k-fold matches `cross_val_score`; putting `StandardScaler` **inside** a `Pipeline` scales per-fold and avoids the leakage of scaling-then-CV; `GridSearchCV` vs `RandomizedSearchCV` trade cost vs. coverage; validation & learning curves diagnose bias/variance.
+
+**8.** Tuning against the test set means you *selected* using it, so the final score is optimistically biased — no longer an estimate of unseen performance. Tune on validation/CV; keep the test set untouched until the end.""",
+        label="Code & concept 4–8",
+    )
 with tab_ref:
     st.subheader("Reading & references")
     st.markdown(LESSON.references)
