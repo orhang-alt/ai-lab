@@ -162,6 +162,11 @@ st.title("Decoding — how an LLM picks the next token")
 st.caption("One fixed next-token distribution, four strategies. Watch greedy / temperature / "
            "top-k / top-p reshape it and sample — the dial between reliable and creative.")
 
+lessons.predict(
+    'Same fixed next-token distribution, four decoders. Which one gives **identical** text every run, and which two **cut the tail** before sampling?',
+    '**Greedy** always takes the argmax → identical, zero diversity. **top-k** and **top-p** cut the low-probability tail before sampling; **temperature** reshapes the whole distribution (higher = flatter / more random). Same model, very different text.',
+)
+
 tab_cmp, tab_theory, tab_quiz, tab_tasks, tab_ref = st.tabs(
     ["🎲 Compare", "📖 Theory", "❓ Self-check", "🛠 Tasks", "📚 References"]
 )

@@ -197,6 +197,11 @@ st.title("Attention — the engine of Transformers & LLMs")
 st.caption("Each token gathers info from the others by dot-product similarity → softmax → "
            "weighted sum. Self-attention runs live below on a tiny sentence.")
 
+lessons.predict(
+    'A query token attends most to the token whose key it is most ___ to. Which operation *measures* that, and which turns the scores into weights?',
+    'Most **similar** to — measured by the **dot product** (Math X1). **Softmax** (X5) turns the raw scores into weights that sum to 1, and the output is the weighted sum of values. Raise the temperature → weights spread out; lower it → attention sharpens onto one token.',
+)
+
 tab_live, tab_theory, tab_quiz, tab_tasks, tab_ref = st.tabs(
     ["🔎 Live attention", "📖 Theory", "❓ Self-check", "🛠 Tasks", "📚 References"]
 )

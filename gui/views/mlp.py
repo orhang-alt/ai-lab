@@ -198,6 +198,11 @@ st.title("MLP — train a whole network")
 st.caption("Stack neurons into a hidden layer and a multilayer perceptron learns XOR — "
            "trained live on the lab's Value MLP + optimizer (core/nn.py, core/optim.py).")
 
+lessons.predict(
+    "A single neuron can't do XOR. Before you train — what does the **hidden layer** have to build for the output neuron to succeed?",
+    'New **features**. The hidden units learn intermediate combinations (an AND-like unit, an OR-like unit) that make XOR linearly separable for the output neuron — the same move as the *Two neurons* page, but here **discovered by backprop** instead of set by hand.',
+)
+
 tab_train, tab_theory, tab_quiz, tab_tasks, tab_ref = st.tabs(
     ["🏋 Train it", "📖 Theory", "❓ Self-check", "🛠 Tasks", "📚 References"]
 )

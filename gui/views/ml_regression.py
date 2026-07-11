@@ -37,6 +37,11 @@ def _fit_callback():
 st.title("Linear regression — playground & lesson")
 st.caption("M1 · ŷ = w·x + b.  Fit a line to data by hand, then let least squares do it perfectly.")
 
+lessons.predict(
+    "You'll fit a line by hand, then press **Fit**. What does 'least squares' actually minimize — and is there more than one best line?",
+    "It minimizes the **sum of squared residuals** (vertical distances). For a straight line that surface is a bowl with a *single* minimum, so the best line is **unique** — and there's a closed-form (OLS) solution, no search needed. Geometrically ŷ is the orthogonal projection of y onto the inputs' span.",
+)
+
 tab_play, tab_theory, tab_quiz, tab_tasks, tab_ref = st.tabs(
     ["🎛 Playground", "📖 Theory", "❓ Self-check", "🛠 Tasks", "📚 References"]
 )

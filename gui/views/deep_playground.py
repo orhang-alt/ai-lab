@@ -175,6 +175,11 @@ st.title("Deep nets on 2-D data")
 st.caption("The MLP idea scaled past XOR — watch a multilayer perceptron bend its boundary "
            "to fit moons, rings and spirals (scikit-learn's fast MLP).")
 
+lessons.predict(
+    "Crank the network's width/depth *way* up on the noisy data — does **test** accuracy keep rising, plateau, or fall? Why?",
+    'It rises, then **falls**. Extra capacity first captures the true shape, then starts memorizing noise (**overfitting**): train accuracy keeps climbing while test accuracy drops. The goal is *enough* capacity, not maximum.',
+)
+
 tab_train, tab_theory, tab_quiz, tab_tasks, tab_ref = st.tabs(
     ["🌀 Train it", "📖 Theory", "❓ Self-check", "🛠 Tasks", "📚 References"]
 )

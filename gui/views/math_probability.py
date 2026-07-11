@@ -127,6 +127,11 @@ st.title("X3 · Probability — playground & lesson")
 st.caption("Explore the key distributions (shape, mean, variance, where they're used), or "
            "watch the Central Limit Theorem turn any distribution's average into a Gaussian.")
 
+lessons.predict(
+    'Average **n** samples from a *skewed* distribution and increase n. What shape does the distribution of the average approach — and what happens to its spread?',
+    "It approaches a **Gaussian** (the Central Limit Theorem) no matter the base shape, and its spread shrinks like 1/√n. That's why sample means are so well-behaved — and a big reason the Gaussian shows up everywhere.",
+)
+
 tab_play, tab_theory, tab_quiz, tab_tasks, tab_ref = st.tabs(
     ["🎛 Playground", "📖 Theory", "❓ Self-check", "🛠 Tasks", "📚 References"]
 )

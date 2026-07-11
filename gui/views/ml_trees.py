@@ -72,6 +72,11 @@ st.title("M3 · Trees & ensembles — playground & lesson")
 st.caption("A decision tree carves space with axis-aligned splits. Raise the depth and watch "
            "it go from underfit → good → overfit (train ↑, test ↓).")
 
+lessons.predict(
+    'Raise the tree **depth** on the checkerboard. What happens to train vs test accuracy — and what would a random forest change?',
+    'Shallow **underfits**; a few levels capture it; very deep **overfits** — train accuracy climbs toward 100% while test accuracy falls (it fences off single noisy points). A **random forest** averages many decorrelated trees, cutting that variance and stabilizing test accuracy.',
+)
+
 tab_play, tab_theory, tab_quiz, tab_tasks, tab_ref = st.tabs(
     ["🎛 Playground", "📖 Theory", "❓ Self-check", "🛠 Tasks", "📚 References"]
 )

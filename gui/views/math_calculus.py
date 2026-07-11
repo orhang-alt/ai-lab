@@ -22,6 +22,11 @@ st.title("X2 · Calculus & gradients — playground & lesson")
 st.caption("The derivative is the slope of the tangent — the limit of secant slopes as h→0. "
            "Shrink h and watch the secant become the tangent.")
 
+lessons.predict(
+    'Shrink the secant gap **h** toward 0. What does the secant slope approach — and how is that the same thing backprop relies on?',
+    'It approaches the **tangent slope**, i.e. the analytic derivative f′(x); the error → 0 as h → 0. That limit *is* the derivative. Backprop is just the **chain rule** applied to these derivatives, composed layer by layer.',
+)
+
 tab_play, tab_theory, tab_quiz, tab_tasks, tab_ref = st.tabs(
     ["🎛 Playground", "📖 Theory", "❓ Self-check", "🛠 Tasks", "📚 References"]
 )

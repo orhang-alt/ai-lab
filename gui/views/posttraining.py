@@ -156,6 +156,11 @@ st.title("Post-training — from base LM to assistant")
 st.caption("A from-scratch GPT only continues text. SFT + preference tuning (RLHF / DPO), "
            "done cheaply with LoRA, turn it into a helpful assistant. (Concepts + diagrams.)")
 
+lessons.predict(
+    'A from-scratch GPT can only *continue* text. What two stages turn it into a helpful **assistant** that follows instructions?',
+    '**SFT** (supervised fine-tuning on instruction→response pairs) teaches the format, then **preference tuning** (RLHF / DPO) aligns *which* response is preferred — done cheaply with **LoRA** (train small adapters, freeze the base). The knowledge is mostly already in the base model; these stages shape *behavior*.',
+)
+
 tab_theory, tab_quiz, tab_tasks, tab_ref = st.tabs(
     ["📖 Theory", "❓ Self-check", "🛠 Tasks", "📚 References"]
 )

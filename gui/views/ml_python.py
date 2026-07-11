@@ -95,6 +95,11 @@ st.title("ML in Python — the practical toolkit")
 st.caption("M8 · How classical ML is actually done in Python (NumPy · pandas · scikit-learn). "
            "The examples below really run — scikit-learn trains them in-page.")
 
+lessons.predict(
+    'Across every scikit-learn model — linear, tree, SVM — what three method names do you always call? What does that mean for swapping models?',
+    '**`fit` / `predict` / `score`** — the same API for every estimator. So swapping models is a *one-line* change (just the constructor); the whole train / evaluate scaffold stays identical. That uniformity is exactly why pipelines and grid-search work across all models.',
+)
+
 tab_demo, tab_theory, tab_quiz, tab_tasks, tab_ref = st.tabs(
     ["🧪 Live examples", "📖 Theory", "❓ Self-check", "🛠 Tasks", "📚 References"]
 )

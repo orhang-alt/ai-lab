@@ -164,6 +164,11 @@ st.title("CNN — convolutional networks for images")
 st.caption("Slide real kernels over an image and watch each become an edge / blur / sharpen "
            "detector (a feature map), then pool it — the two ops a CNN stacks.")
 
+lessons.predict(
+    'Pick the **vertical-edge** kernel and slide it over the image — *where* will the feature map light up (large values)?',
+    'Right on the **vertical edges** — where dark meets light along a column. A convolution scores how much each patch resembles the kernel; a CNN learns *many* kernels, so early layers fire on edges, deeper ones on textures and object parts.',
+)
+
 tab_live, tab_theory, tab_quiz, tab_tasks, tab_ref = st.tabs(
     ["🖼 Convolve", "📖 Theory", "❓ Self-check", "🛠 Tasks", "📚 References"]
 )

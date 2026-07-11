@@ -40,6 +40,11 @@ st.title("M4 · SVM & kernels — playground & lesson")
 st.caption("A linear kernel draws a straight margin; the RBF kernel bends it. Try the linear "
            "kernel on XOR (it fails) then switch to RBF (it works).")
 
+lessons.predict(
+    'Try a **linear** kernel on XOR-like data. Will it separate the classes? What does switching to **RBF** change?',
+    "The linear kernel **fails** (~50–75%) — XOR isn't linearly separable. **RBF** bends the boundary by implicitly lifting the data into a higher-dimensional space where it *is* separable. **C** trades margin width vs. errors; **γ** sets how local the boundary is (large γ → wiggly / overfit).",
+)
+
 tab_play, tab_theory, tab_quiz, tab_tasks, tab_ref = st.tabs(
     ["🎛 Playground", "📖 Theory", "❓ Self-check", "🛠 Tasks", "📚 References"]
 )

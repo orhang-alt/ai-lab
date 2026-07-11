@@ -41,6 +41,11 @@ st.title("M6 · Model selection — playground & lesson")
 st.caption("Pick the model that wins on held-out data, not on training data. The validation "
            "curve (via k-fold CV) shows train error always falling while CV error is U-shaped.")
 
+lessons.predict(
+    'Training error always falls as models get more flexible. So why not just pick the lowest *training* error — and what curve should you use instead?',
+    "Because lowest training error = the most complex, overfit model. Use **cross-validated** error: it's U-shaped, and its minimum is the model that generalizes best. The gap between train and CV error *is* overfitting, made visible.",
+)
+
 tab_play, tab_theory, tab_quiz, tab_tasks, tab_ref = st.tabs(
     ["🎛 Playground", "📖 Theory", "❓ Self-check", "🛠 Tasks", "📚 References"]
 )

@@ -28,6 +28,11 @@ st.title("X6 · Numerical computing — playground & lesson")
 st.caption("Math on a computer isn't exact. Push the logits up and watch the naive softmax "
            "overflow to NaN while the stable (log-sum-exp) version stays correct.")
 
+lessons.predict(
+    'Push the logits way up. What does the *naive* softmax do — and how does subtracting the max (log-sum-exp) fix it?',
+    "Naive `exp()` of large logits **overflows to inf**, giving `inf/inf = NaN`. Subtracting the max first (**log-sum-exp**) shifts everything ≤ 0 so `exp` stays finite — same result mathematically, but numerically stable. That's what `core/activations.py`'s softmax does.",
+)
+
 tab_play, tab_theory, tab_quiz, tab_tasks, tab_ref = st.tabs(
     ["🎛 Playground", "📖 Theory", "❓ Self-check", "🛠 Tasks", "📚 References"]
 )

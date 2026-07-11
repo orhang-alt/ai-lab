@@ -235,6 +235,11 @@ st.title("Tiny GPT — Transformer & next-token prediction")
 st.caption("Wrap attention in a block, stack it, and train on one objective: predict the "
            "next token. The Live tab trains a tiny char-level LM you can prompt and sample.")
 
+lessons.predict(
+    'This tiny model trains on **one** objective. What is it — and how does the *same* model then **generate** text?',
+    "Predict the **next token** (softmax + cross-entropy over the vocabulary). Generation is just **sampling that next-token distribution**, appending the choice, and repeating — token by token. Scale this up and it's a GPT.",
+)
+
 tab_live, tab_theory, tab_quiz, tab_tasks, tab_ref = st.tabs(
     ["⌨ Generate", "📖 Theory", "❓ Self-check", "🛠 Tasks", "📚 References"]
 )

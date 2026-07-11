@@ -210,6 +210,11 @@ st.title("Backprop & autograd")
 st.caption("How a network gets a gradient for every weight in one backward pass — run live "
            "on the lab's own Value engine (core/engine.py).")
 
+lessons.predict(
+    'Nudge the weight **w** up a little — will the loss **L** rise or fall, and which number on screen tells you *before* you move it?',
+    "The gradient **∂L/∂w**. Its sign says which way L moves as w increases (positive → L rises, so gradient descent steps the *other* way); its size is the slope. `backward()` fills in every such gradient in one reverse pass — that's the whole trick.",
+)
+
 tab_live, tab_theory, tab_quiz, tab_tasks, tab_ref = st.tabs(
     ["🔁 Live walkthrough", "📖 Theory", "❓ Self-check", "🛠 Tasks", "📚 References"]
 )

@@ -187,6 +187,11 @@ st.title("Tokenization — how text becomes tokens")
 st.caption("Before any LLM math, text is cut into tokens. Compare character / word / "
            "sub-word, and train a tiny BPE tokenizer live by merging frequent pairs.")
 
+lessons.predict(
+    'As you increase the number of **BPE merges**, does your text become *more* tokens or *fewer* — and what grows in return?',
+    "**Fewer, longer** tokens (a shorter sequence) — but the **vocabulary** grows. Real LLMs pick a fixed vocab (~30k–100k), the balance point. Unknown words fall back to smaller pieces, so there's no out-of-vocabulary problem.",
+)
+
 tab_tok, tab_theory, tab_quiz, tab_tasks, tab_ref = st.tabs(
     ["✂️ Tokenize", "📖 Theory", "❓ Self-check", "🛠 Tasks", "📚 References"]
 )

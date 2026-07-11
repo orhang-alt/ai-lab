@@ -161,6 +161,11 @@ st.title("RNN — recurrent networks for sequences")
 st.caption("Walk a sequence carrying a hidden state. The Live tab runs a 1-unit RNN so you "
            "can watch the recurrent weight set how long it remembers.")
 
+lessons.predict(
+    'Feed one spike, then zeros. With recurrent weight **wₕ ≈ 1** vs **wₕ ≈ 0.3**, which remembers the spike longer — and what happens if **wₕ > 1**?',
+    '**wₕ ≈ 1** holds the value for many steps (long memory); **wₕ ≈ 0.3** forgets fast (×0.3 each step); **wₕ > 1** blows up. The same wₕ multiplies the *gradient* every step too — exactly why long sequences vanish/explode, and why LSTMs add gates.',
+)
+
 tab_live, tab_theory, tab_quiz, tab_tasks, tab_ref = st.tabs(
     ["🔁 Hidden state", "📖 Theory", "❓ Self-check", "🛠 Tasks", "📚 References"]
 )

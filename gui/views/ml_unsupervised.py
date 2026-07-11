@@ -33,6 +33,11 @@ st.title("M5 · Unsupervised — playground & lesson")
 st.caption("No labels — find structure. Watch k-means group points and place centroids; "
            "try the wrong k and see the inertia change.")
 
+lessons.predict(
+    'As you raise **k** in k-means, does the inertia go up or down? So can you just pick k by minimizing inertia?',
+    'Inertia always **drops** as k rises (more centroids fit tighter) — so minimizing it picks k = n points, which is useless. Use the **elbow** or **silhouette** instead. Also change the seed: k-means can settle into different local optima.',
+)
+
 tab_play, tab_theory, tab_quiz, tab_tasks, tab_ref = st.tabs(
     ["🎛 Playground", "📖 Theory", "❓ Self-check", "🛠 Tasks", "📚 References"]
 )

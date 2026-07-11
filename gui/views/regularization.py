@@ -187,6 +187,11 @@ st.title("Regularization — taming overfitting")
 st.caption("Dial L2 weight decay up and down on a noisy dataset: watch the boundary go from "
            "wiggly to smooth and the train/test gap close at the sweet spot.")
 
+lessons.predict(
+    "As you raise the L2 strength **λ** from 0, what happens to (a) the boundary's wiggliness and (b) the **train–test gap**?",
+    'Both **shrink** at first: larger λ penalizes big weights → a smoother boundary → a smaller train/test gap. Past the sweet spot it **underfits** (both errors rise). The gap is smallest at the validation-best λ (the green line).',
+)
+
 tab_tune, tab_theory, tab_quiz, tab_tasks, tab_ref = st.tabs(
     ["🎚 Tune it", "📖 Theory", "❓ Self-check", "🛠 Tasks", "📚 References"]
 )

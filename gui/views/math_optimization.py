@@ -17,6 +17,11 @@ st.title("X4 · Optimization — playground & lesson")
 st.caption("Watch gradient descent roll downhill on f(x,y) = x² + b·y². Push the learning rate "
            "until it diverges; raise the anisotropy to see it zig-zag.")
 
+lessons.predict(
+    'Push the **learning rate** up. What happens first — faster convergence or divergence? And what does raising the anisotropy (ravine steepness) do?',
+    'Small η crawls; a larger η converges faster **up to a point**, then **overshoots and diverges**. High anisotropy turns the bowl into a ravine where gradient descent **zig-zags** — exactly why feature scaling (M7) and momentum / Adam matter.',
+)
+
 tab_play, tab_theory, tab_quiz, tab_tasks, tab_ref = st.tabs(
     ["🎛 Playground", "📖 Theory", "❓ Self-check", "🛠 Tasks", "📚 References"]
 )

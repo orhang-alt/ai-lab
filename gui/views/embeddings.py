@@ -161,6 +161,11 @@ st.title("Embeddings & RAG — meaning as geometry")
 st.caption("Text → vectors where similar meaning sits nearby (cosine, Math X1); retrieval-"
            "augmented generation feeds the most similar facts to the LLM. Live search below.")
 
+lessons.predict(
+    'You ask something the knowledge base does **not** contain. What will the top **cosine similarity** look like — and what should a good RAG system do?',
+    "The top similarity will be **low** — nothing is close. A good RAG system notices that and says *'I don't know'* instead of grounding an answer in irrelevant text (which is how hallucinations sneak in).",
+)
+
 tab_live, tab_theory, tab_quiz, tab_tasks, tab_ref = st.tabs(
     ["🔎 Retrieve", "📖 Theory", "❓ Self-check", "🛠 Tasks", "📚 References"]
 )

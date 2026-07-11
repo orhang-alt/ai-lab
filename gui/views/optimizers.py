@@ -194,6 +194,11 @@ st.title("Optimizers compared — SGD · Momentum · Adam")
 st.caption("The same ravine, three optimizers, run on the lab's core.optim. Watch how each "
            "handles a surface that's steep one way and flat the other.")
 
+lessons.predict(
+    'On a **ravine** (steep one way, flat the other) at the *same* learning rate, which optimizer reaches the bottom fastest — SGD, Momentum, or Adam — and which one zig-zags?',
+    '**SGD** zig-zags across the steep axis and crawls along the flat one. **Momentum** builds velocity and rolls through the zig-zag. **Adam** adapts a per-axis step and usually arrives first. Same gradients — different ways of *using* their history.',
+)
+
 tab_cmp, tab_theory, tab_quiz, tab_tasks, tab_ref = st.tabs(
     ["🏁 Compare", "📖 Theory", "❓ Self-check", "🛠 Tasks", "📚 References"]
 )

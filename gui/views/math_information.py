@@ -22,6 +22,11 @@ st.title("X5 · Information theory — playground & lesson")
 st.caption("Cross-entropy is the classification loss. Set the true p and the model's prediction "
            "q, and watch cross-entropy bottom out exactly when q = p (KL = 0).")
 
+lessons.predict(
+    "Set the model's prediction **q equal to the true p**. Where does cross-entropy bottom out, and what is KL there? What if q is confident but wrong?",
+    'Cross-entropy is minimized exactly when **q = p**, where it equals the entropy H(p) and **KL = 0**. Being confident *and* wrong (q → 0 where p is high) makes it **explode** — that steep penalty is what trains classifiers (M2 / ANN).',
+)
+
 tab_play, tab_theory, tab_quiz, tab_tasks, tab_ref = st.tabs(
     ["🎛 Playground", "📖 Theory", "❓ Self-check", "🛠 Tasks", "📚 References"]
 )

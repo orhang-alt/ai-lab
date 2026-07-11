@@ -23,6 +23,11 @@ st.title("M0 · Foundations — playground & lesson")
 st.caption("The core idea of ML: generalize, don't memorize. Crank model complexity and watch "
            "underfitting turn into overfitting.")
 
+lessons.predict(
+    'Crank model complexity up on noisy data — does *training* error keep dropping? Does *test* error? Which one should you actually trust?',
+    "Training error keeps dropping (more flexibility always fits the training set better) — so it's a trap. Test error is **U-shaped**: it falls, bottoms out, then rises as the model memorizes noise (overfitting). Trust **test / validation** error; its minimum is the best model.",
+)
+
 tab_play, tab_theory, tab_quiz, tab_tasks, tab_ref = st.tabs(
     ["🎛 Playground", "📖 Theory", "❓ Self-check", "🛠 Tasks", "📚 References"]
 )

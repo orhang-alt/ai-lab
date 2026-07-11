@@ -16,6 +16,11 @@ st.title("Vectors & the dot product — playground & lesson")
 st.caption("X1 · w·x is a neuron's pre-activation. Drag two vectors and watch the dot product, "
            "angle, and projection.")
 
+lessons.predict(
+    'Drag **x** to point the *same* way as **w**, then perpendicular, then opposite. What does the dot product w·x do at each — and where is it largest?',
+    "Largest (positive) when **aligned** (θ=0), **zero** when perpendicular (θ=90°), negative when opposed: w·x = ‖w‖‖x‖cos θ. That's exactly a neuron's pre-activation z = w·x + b — the neuron scores how much the input aligns with its weight direction.",
+)
+
 tab_play, tab_theory, tab_quiz, tab_tasks, tab_ref = st.tabs(
     ["🎛 Playground", "📖 Theory", "❓ Self-check", "🛠 Tasks", "📚 References"]
 )

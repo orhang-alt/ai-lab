@@ -34,6 +34,11 @@ st.title("M2 · Classification — playground & lesson")
 st.caption("Logistic regression = a sigmoid neuron. Move the threshold and watch the "
            "confusion matrix and precision/recall trade off.")
 
+lessons.predict(
+    "Slide the decision **threshold** up. Which rises and which falls — precision or recall — and why can't you max both?",
+    "Raising the threshold labels fewer points positive → **precision up, recall down** (fewer true positives caught, but fewer false alarms). It's a trade-off: a spam filter wants high precision, a cancer screen wants high recall. The model is fixed — the threshold just slides you along the curve.",
+)
+
 tab_play, tab_theory, tab_quiz, tab_tasks, tab_ref = st.tabs(
     ["🎛 Playground", "📖 Theory", "❓ Self-check", "🛠 Tasks", "📚 References"]
 )
